@@ -29,7 +29,6 @@ public:
     void* GetFunction(const char* symbol);
 
 private:
-    explicit CudaHook(const char *dl);
     struct Impl;
     std::unique_ptr<Impl> m_;
 };

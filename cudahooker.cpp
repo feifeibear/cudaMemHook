@@ -15,9 +15,8 @@
 #include "dlsym_hook.h"
 #include <set>
 #include <iostream>
-#include <dlfcn.h>
-
 namespace wxgpumemmgr{
+//TODO substitude it with API of a global cuda allocator.
 
 namespace details {
     static int wx_cuMemFree_v2(uintptr_t addr) {
@@ -35,10 +34,6 @@ struct CudaHook::Impl {
 
     std::set<const char*> hanlder_names_{"cuMemFree_v2", "cuMemAlloc_v2"};
 
-    void* m_header_{nullptr};
-//
-//    std::function<int(uintptr_t)> cuMemFree_v2{nullptr};
-//    std::function<int(uintptr_t *, size_t)> cuMemAlloc_v2{nullptr};
     static int wx_cuMemFree_v2(uintptr_t addr) {
         std::cerr << "call wx_cuMemFree_v2" << std::endl;
         return 0;
@@ -50,30 +45,10 @@ struct CudaHook::Impl {
     }
 };
 
-CudaHook::CudaHook(const char *dl) : m_(std::make_unique<Impl>()){
-    // Load the libcuda.so library with RTLD_GLOBAL so we can hook the function calls
-    m_->m_header_ = dlopen(dl, RTLD_LAZY | RTLD_GLOBAL);
-    if (!m_->m_header_) {
-        std::cerr << "Error to open library " << dl << ": " << dlerror() << std::endl;
-        std::exit(-1);
-    }
-
-    // Load cuda APIs from libcuda.so
-//    m_->cuMemFree_v2 = func_cast<int(uintptr_t)>(real_dlsym(m_->m_header_, "cuMemFree_v2"));
-//    if (!m_->cuMemFree_v2) {
-//        std::cerr << "Error to find symbol cuMemFree_v2 : " << dlerror() << std::endl;
-//        std::exit(-2);
-//    }
-//    m_->cuMemAlloc_v2 = func_cast<int(uintptr_t *, size_t)>(real_dlsym(m_->m_header_, "cuMemAlloc_v2"));
-//    if (!m_->cuMemAlloc_v2) {
-//        std::cerr << "Error to find symbol cuMemAlloc_v2 : " << dlerror() << std::endl;
-//        std::exit(-2);
-//    }
-}
 
 CudaHook &CudaHook::instance()
 {
-    static CudaHook hook("libcuda.so");
+    static CudaHook hook;
     return hook;
 }
 
@@ -92,10 +67,6 @@ void* CudaHook::GetFunction(const char* symbol) {
     }
 }
 
-CudaHook::~CudaHook() {
-    if (m_->m_header_) {
-        dlclose(m_->m_header_);
-    }
-}
+CudaHook::~CudaHook() = default;
 
 } // namespace wxgpumemmgr
