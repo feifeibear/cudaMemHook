@@ -3,6 +3,21 @@ project(gpuMemMgr)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_library(cuda_hooker SHARED dlsym_hook.cpp realdlsym.cpp)
-target_link_libraries(cuda_hooker ${CMAKE_DL_LIBS})
-add_compile_options(cuda_hooker -fPIC)
+add_library(cuda_hooker SHARED
+        dlsym_hook.cpp
+        realdlsym.cpp
+        cudahooker.cpp)
+
+target_compile_definitions(cuda_hooker
+        PRIVATE
+        _GNU_SOURCE=1
+        )
+
+target_link_libraries(cuda_hooker
+        PRIVATE
+        ${CMAKE_DL_LIBS}
+        )
+
+install(TARGETS cuda_hooker
+        LIBRARY DESTINATION lib
+        )
