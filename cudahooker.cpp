@@ -12,7 +12,7 @@
 // See the AUTHORS file for names of contributors.
 
 #include "cudahooker.hpp"
-#include "dlsym_hook.h"
+#include <cstring>
 #include <set>
 #include <iostream>
 namespace wxgpumemmgr{

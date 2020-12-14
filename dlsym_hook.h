@@ -17,6 +17,10 @@
 #include <stdio.h>
 #include "realdlsym.h"
 #include "cudahooker.hpp"
+namespace wxgpumemmgr{
+class CudaHook;
+}
+
 extern "C" {
 
 #ifdef __APPLE__
