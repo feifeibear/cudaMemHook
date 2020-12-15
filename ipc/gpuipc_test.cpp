@@ -13,6 +13,9 @@
 
 #include "gpuipc.h"
 #include "catch2/catch.hpp"
+#include "cuda_runtime.h"
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace wxgpumemmgr {
 namespace ipc {
@@ -20,25 +23,21 @@ namespace ipc {
 TEST_CASE("cuda ipc", "init") {
     pid_t pid;
 
+    pid = fork();
     constexpr int N = 1<<5;
     if (pid == 0) {
-        // 子行程
         printf("Child process!n");
         void* d_x;
         cudaMalloc(&d_x, N*sizeof(float));
         sendSharedCache(d_x);
-
     } else if (pid > 0) {
-        // 父行程
         void* d_y;
-        recvSharedCache(d_x);
+        sleep(5);
+        recvSharedCache(d_y);
         printf("Parent process!n");
     } else {
-        // 錯誤
         printf("Error!n");
     }
-
-    return 0;
 }
 
 
