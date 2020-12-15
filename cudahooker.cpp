@@ -15,7 +15,7 @@
 #include <cstring>
 #include <set>
 #include <iostream>
-#include "cuda_kernels.h"
+#include "cudakernels.h"
 
 namespace wxgpumemmgr{
 
