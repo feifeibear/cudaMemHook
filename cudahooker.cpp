@@ -15,36 +15,13 @@
 #include <cstring>
 #include <set>
 #include <iostream>
+#include "cuda_kernels.h"
+
 namespace wxgpumemmgr{
-//TODO substitude it with API of a global cuda allocator.
-
-namespace details {
-    static int wx_cuMemFree_v2(uintptr_t addr) {
-        std::cerr << "call wx_cuMemFree_v2" << std::endl;
-        return 0;
-    }
-
-    static int wx_cuMemAlloc_v2(uintptr_t * addr, size_t size) {
-        std::cerr << "call wx_cuMemAlloc_v2 " << size << std::endl;
-        return 0;
-    }
-}
 
 struct CudaHook::Impl {
-
     std::set<const char*> hanlder_names_{"cuMemFree_v2", "cuMemAlloc_v2"};
-
-    static int wx_cuMemFree_v2(uintptr_t addr) {
-        std::cerr << "call wx_cuMemFree_v2" << std::endl;
-        return 0;
-    }
-
-    static int wx_cuMemAlloc_v2(uintptr_t * addr, size_t size) {
-        std::cerr << "call wx_cuMemAlloc_v2 " << size << std::endl;
-        return 0;
-    }
 };
-
 
 CudaHook &CudaHook::instance()
 {
@@ -58,9 +35,9 @@ bool  CudaHook::IsValid(const char* symbol) const {
 
 void* CudaHook::GetFunction(const char* symbol) {
     if (strcmp(symbol, "cuMemFree_v2")) {
-        return reinterpret_cast<void *>(Impl::wx_cuMemFree_v2);
+        return reinterpret_cast<void *>(wx_cuMemFree_v2);
     } else if (strcmp(symbol, "cuMemAlloc_v2")) {
-        return reinterpret_cast<void *>(Impl::wx_cuMemAlloc_v2);
+        return reinterpret_cast<void *>(wx_cuMemAlloc_v2);
     } else {
         std::cerr << "CudaHook GetFunction's parameter is invalid" << std::endl;
         std::exit(-2);

@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD 14)
 add_library(cuda_hooker SHARED
         dlsym_hook.cpp
         realdlsym.cpp
-        cudahooker.cpp)
+        cudahooker.cpp
+        cuda_kernels.cpp)
 
 target_compile_definitions(cuda_hooker
         PRIVATE
