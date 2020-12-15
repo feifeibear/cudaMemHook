@@ -33,19 +33,5 @@ void* real_dlsym(void *handle, const char* symbol) noexcept
     static auto internal_dlsym = func_cast<FnDlsym*>(__libc_dlsym(dlopen("libdl.so.2", RTLD_LAZY), "dlsym"));
     return (*internal_dlsym)(handle, symbol);
 }
-/*
-//FnDlopen* real_dlopen = nullptr;
-void* dlopen_handle = nullptr;
-
-void *dlopen(const char *filename, int flags) {
-    static auto* real_dlopen = func_cast<FnDlopen*>(__libc_dlsym(dlopen("libdl.so.2", RTLD_LAZY), "dlopen"));
-    dlopen_handle = real_dlopen(filename, flags);
-    return dlopen_handle;
-}
-
-void *get_dlopen_handle() {
-    return dlopen_handle;
-}
-*/
 
 } // namespace wxgpumemmgr

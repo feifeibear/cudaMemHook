@@ -31,13 +31,6 @@ CudaHook &CudaHook::instance()
     return hook;
 }
 
-//bool CudaHook::IsValid(const char* symbol) const {
-//    if (strcmp(symbol, "cuMemFree_v2") == 0 || strcmp(symbol, "cuMemAlloc_v2") == 0) {
-//        return true;
-//    } else {
-//        return false;
-//    }
-//}
 
 void* CudaHook::GetFunction(const char* symbol) {
     if (strcmp(symbol, "cuMemFree_v2") == 0) {

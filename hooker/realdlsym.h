@@ -17,8 +17,6 @@
 namespace wxgpumemmgr {
 
 extern void *real_dlsym(void *handle, const char *symbol) noexcept;
-//extern void *dlopen(const char *filename, int flags);
-//extern void *get_dlopen_handle();
 
 template<typename FnPtrT>
 constexpr auto func_cast(void *ptr) noexcept {

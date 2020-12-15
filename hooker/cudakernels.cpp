@@ -16,13 +16,14 @@
 #include "realdlsym.h"
 #include <iostream>
 #include <dlfcn.h>
+#include "loguru.hpp"
 
 using namespace wxgpumemmgr;
 extern "C" {
 const char* dl = "libcuda.so";
 
 int wx_cuMemAlloc_v2(uintptr_t *devPtr, size_t size) {
-    std::cerr << "call wx_cuMemAlloc_v2" << std::endl;
+    LOG_S(INFO) << "call wx_cuMemAlloc_v2";
     int ret;
 
     static cuda_mem_alloc_v2_fn* orig_cuda_mem_alloc_v2 = nullptr;
@@ -36,7 +37,7 @@ int wx_cuMemAlloc_v2(uintptr_t *devPtr, size_t size) {
 }
 
 int wx_cuMemAlloc(uintptr_t *devPtr, size_t size) {
-    std::cerr << "call wx_cuMemAlloc" << std::endl;
+    LOG_S(INFO)<< "call wx_cuMemAlloc";
     int ret;
 
     static cuda_mem_alloc_v2_fn* orig_cuda_mem_alloc = nullptr;
@@ -51,7 +52,7 @@ int wx_cuMemAlloc(uintptr_t *devPtr, size_t size) {
 }
 
 int wx_cuMemFree_v2(uintptr_t ptr) {
-    std::cerr << "call wx_cuMemFree_v2" << std::endl;
+    LOG_S(INFO) << "call wx_cuMemFree_v2";
     static cuda_mem_free_v2_fn* orig_cuda_mem_free_v2 = nullptr;
     if (orig_cuda_mem_free_v2 == nullptr) {
         auto m_handle = dlopen(dl, RTLD_LAZY | RTLD_GLOBAL);
@@ -61,7 +62,7 @@ int wx_cuMemFree_v2(uintptr_t ptr) {
     return orig_cuda_mem_free_v2(ptr);
 }
 int wx_cuMemFree(uintptr_t ptr) {
-    std::cerr << "call wx_cuMemFree" << std::endl;
+    LOG_S(INFO) << "call wx_cuMemFree";
     static cuda_mem_free_v2_fn* orig_cuda_mem_free = nullptr;
     if (orig_cuda_mem_free == nullptr) {
         auto m_handle = dlopen(dl, RTLD_LAZY | RTLD_GLOBAL);

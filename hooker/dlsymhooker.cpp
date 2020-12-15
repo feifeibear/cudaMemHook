@@ -14,6 +14,7 @@
 #include "dlsymhooker.h"
 #include "cudahooker.hpp"
 #include "realdlsym.h"
+#include "loguru.hpp"
 
 extern "C" {
 #ifdef __APPLE__
@@ -24,10 +25,10 @@ void *dlsym(void *handle, const char *symbol) noexcept {
     auto& hooker = wxgpumemmgr::CudaHook::instance();
     void* fn_ptr = hooker.GetFunction(symbol);
     if (fn_ptr != nullptr) {
-      printf("hooking %s\n", symbol);
+      LOG_S(INFO) << "hooking " << symbol;
       return fn_ptr;
     }
-    printf("dlsym loading %s\n", symbol);
+    LOG_S(INFO) <<  "dlsym loading " << symbol;
     return wxgpumemmgr::real_dlsym(handle, symbol);
 }
 } // extern "C"

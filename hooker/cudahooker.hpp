@@ -25,7 +25,6 @@ public:
     ~CudaHook();
     static CudaHook &instance();
 
-    bool  IsValid(const char* symbol) const;
     void* GetFunction(const char* symbol);
 
 private:
