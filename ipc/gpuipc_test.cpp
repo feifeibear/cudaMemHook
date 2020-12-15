@@ -26,16 +26,18 @@ TEST_CASE("cuda ipc", "init") {
     pid = fork();
     constexpr size_t N = 5;
     if (pid == 0) {
-        printf("Child process!n");
+        printf("Child process!\n");
         std::unique_ptr<float[]> host_send_data(new float [N]);
         for(size_t i = 0; i < N; ++i) {
             host_send_data[i] = 1. * i;
         }
         void* dev_send_data;
-        cudaMalloc(&host_send_data.get(), N*sizeof(float));
+        cudaMalloc(&dev_send_data, N*sizeof(float));
         cudaMemcpy(dev_send_data, host_send_data.get(), N*sizeof(float), cudaMemcpyHostToDevice);
-        sendSharedCache(d_x);
+        sendSharedCache(dev_send_data);
+        sleep(15);
     } else if (pid > 0) {
+        printf("Parent process!\n");
         void* dev_recv_data;
         sleep(5);
         recvSharedCache(dev_recv_data);
@@ -44,7 +46,7 @@ TEST_CASE("cuda ipc", "init") {
         for(size_t i = 0; i < N; ++i) {
             printf("%f\n", host_recv_data[i]);
         }
-        printf("Parent process!n");
+        sleep(5);
     } else {
         printf("Error!n");
     }
