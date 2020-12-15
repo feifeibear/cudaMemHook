@@ -15,25 +15,14 @@
 #include <dlfcn.h>
 #include <cstring>
 #include <stdio.h>
-#include "realdlsym.h"
-#include "cudahooker.hpp"
-namespace wxgpumemmgr{
-class CudaHook;
-}
 
 extern "C" {
 
 #ifdef __APPLE__
-void *dlsym(void * handle, const char * symbol) __DYLDDL_DRIVERKIT_UNAVAILABLE {
+void *dlsym(void * handle, const char * symbol) __DYLDDL_DRIVERKIT_UNAVAILABLE;
 #else
-void *dlsym(void *handle, const char *symbol) noexcept {
+void *dlsym(void *handle, const char *symbol) noexcept;
 #endif
-    printf("dlsym loading %s\n", symbol);
-    auto& hooker = wxgpumemmgr::CudaHook::instance();
-    if (hooker.IsValid(symbol)) {
-        return hooker.GetFunction(symbol);
-    }
-    return wxgpumemmgr::real_dlsym(handle, symbol);
-}
+
 
 } // extern "C"

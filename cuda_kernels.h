@@ -12,17 +12,17 @@
 // See the AUTHORS file for names of contributors.
 
 #pragma once
-#include <cstdint>
+#include <unistd.h>
+#include <stdint.h>
 
-namespace wxgpumemmgr {
 
-extern void *real_dlsym(void *handle, const char *symbol) noexcept;
-//extern void *dlopen(const char *filename, int flags);
-//extern void *get_dlopen_handle();
+typedef int (*cuda_mem_alloc_v2_fp)(uintptr_t *, size_t);
+typedef int (*cuda_mem_free_v2_fp)(uintptr_t);
 
-template<typename FnPtrT>
-constexpr auto func_cast(void *ptr) noexcept {
-    return reinterpret_cast<FnPtrT>(reinterpret_cast<intptr_t>(ptr));
-}
+extern "C" {
 
-} // namespace wxgpumemmgr
+extern int wx_cuMemAlloc_v2(uintptr_t *devPtr, size_t size); 
+extern int wx_cuMemFree_v2(uintptr_t ptr);
+
+
+} // extern "C"
