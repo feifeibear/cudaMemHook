@@ -20,8 +20,10 @@
 namespace wxgpumemmgr{
 
 struct CudaHook::Impl {
-    std::set<const char*> hanlder_names_{"cuMemFree_v2", "cuMemAlloc_v2"};
 };
+
+
+CudaHook::CudaHook() : m_(std::make_unique<Impl>()) {};
 
 CudaHook &CudaHook::instance()
 {
@@ -29,14 +31,18 @@ CudaHook &CudaHook::instance()
     return hook;
 }
 
-bool  CudaHook::IsValid(const char* symbol) const {
-    return m_->hanlder_names_.count(symbol) == 0;
+bool CudaHook::IsValid(const char* symbol) const {
+    if (strcmp(symbol, "cuMemFree_v2") == 0 || strcmp(symbol, "cuMemAlloc_v2") == 0) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void* CudaHook::GetFunction(const char* symbol) {
-    if (strcmp(symbol, "cuMemFree_v2")) {
+    if (strcmp(symbol, "cuMemFree_v2") == 0) {
         return reinterpret_cast<void *>(wx_cuMemFree_v2);
-    } else if (strcmp(symbol, "cuMemAlloc_v2")) {
+    } else if (strcmp(symbol, "cuMemAlloc_v2") == 0) {
         return reinterpret_cast<void *>(wx_cuMemAlloc_v2);
     } else {
         std::cerr << "CudaHook GetFunction's parameter is invalid" << std::endl;

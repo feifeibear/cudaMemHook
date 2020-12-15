@@ -11,17 +11,22 @@
 // permissions and limitations under the License.
 // See the AUTHORS file for names of contributors.
 
-#pragma once
-#include <unistd.h>
-#include <stdint.h>
-
-
-using cuda_mem_alloc_v2_fn = int(uintptr_t *, size_t);
-using cuda_mem_free_v2_fn = int(uintptr_t);
+#include "dlsym_hook.h"
+#include "cudahooker.hpp"
+#include "realdlsym.h"
 
 extern "C" {
-
-extern int wx_cuMemAlloc_v2(uintptr_t *devPtr, size_t size);
-extern int wx_cuMemFree_v2(uintptr_t ptr);
-
+#ifdef __APPLE__
+void *dlsym(void * handle, const char * symbol) __DYLDDL_DRIVERKIT_UNAVAILABLE {
+#else
+void *dlsym(void *handle, const char *symbol) noexcept {
+#endif
+    auto& hooker = wxgpumemmgr::CudaHook::instance();
+    if (hooker.IsValid(symbol)) {
+      printf("hooking %s\n", symbol);
+        return hooker.GetFunction(symbol);
+    }
+    printf("dlsym loading %s\n", symbol);
+    return wxgpumemmgr::real_dlsym(handle, symbol);
+}
 } // extern "C"

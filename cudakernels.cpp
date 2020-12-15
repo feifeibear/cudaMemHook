@@ -11,4 +11,63 @@
 // permissions and limitations under the License.
 // See the AUTHORS file for names of contributors.
 
+
 #include "cudakernels.h"
+#include "realdlsym.h"
+#include <iostream>
+#include <dlfcn.h>
+
+using namespace wxgpumemmgr;
+extern "C" {
+const char* dl = "libcuda.so";
+
+int wx_cuMemAlloc_v2(uintptr_t *devPtr, size_t size) {
+    std::cerr << "call wx_cuMemAlloc_v2" << std::endl;
+    int ret;
+
+    static cuda_mem_alloc_v2_fn* orig_cuda_mem_alloc_v2 = nullptr;
+    if (orig_cuda_mem_alloc_v2 == nullptr) {
+        auto m_handle = dlopen(dl, RTLD_LAZY | RTLD_GLOBAL);
+        orig_cuda_mem_alloc_v2 = reinterpret_cast<cuda_mem_alloc_v2_fn*>(real_dlsym(m_handle,
+                                                                                    "cuMemAlloc_v2"));
+    }
+    ret = orig_cuda_mem_alloc_v2(devPtr, size);
+    return ret;
+}
+
+int wx_cuMemAlloc(uintptr_t *devPtr, size_t size) {
+    std::cerr << "call wx_cuMemAlloc" << std::endl;
+    int ret;
+
+    static cuda_mem_alloc_v2_fn* orig_cuda_mem_alloc = nullptr;
+    if (orig_cuda_mem_alloc == nullptr) {
+        auto m_handle = dlopen(dl, RTLD_LAZY | RTLD_GLOBAL);
+        orig_cuda_mem_alloc = reinterpret_cast<cuda_mem_alloc_v2_fn*>(real_dlsym(m_handle,
+                                        "cuMemAlloc"));
+    }
+    ret = orig_cuda_mem_alloc(devPtr, size);
+
+    return ret;
+}
+
+int wx_cuMemFree_v2(uintptr_t ptr) {
+    std::cerr << "call wx_cuMemFree_v2" << std::endl;
+    static cuda_mem_free_v2_fn* orig_cuda_mem_free_v2 = nullptr;
+    if (orig_cuda_mem_free_v2 == nullptr) {
+        auto m_handle = dlopen(dl, RTLD_LAZY | RTLD_GLOBAL);
+        orig_cuda_mem_free_v2 = reinterpret_cast<cuda_mem_free_v2_fn*>(real_dlsym(m_handle,
+                                                                                  "cuMemFree_v2"));
+    }
+    return orig_cuda_mem_free_v2(ptr);
+}
+int wx_cuMemFree(uintptr_t ptr) {
+    std::cerr << "call wx_cuMemFree" << std::endl;
+    static cuda_mem_free_v2_fn* orig_cuda_mem_free = nullptr;
+    if (orig_cuda_mem_free == nullptr) {
+        auto m_handle = dlopen(dl, RTLD_LAZY | RTLD_GLOBAL);
+        orig_cuda_mem_free = reinterpret_cast<cuda_mem_free_v2_fn*>(real_dlsym(m_handle, "cuMemFree"));
+    }
+    return orig_cuda_mem_free(ptr);
+}
+
+} // extern "C"

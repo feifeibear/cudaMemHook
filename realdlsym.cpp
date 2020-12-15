@@ -12,6 +12,7 @@
 // See the AUTHORS file for names of contributors.
 
 #include "realdlsym.h"
+#include <stdio.h>
 
 #include <dlfcn.h>
 extern "C" {
@@ -32,12 +33,12 @@ void* real_dlsym(void *handle, const char* symbol) noexcept
     static auto internal_dlsym = func_cast<FnDlsym*>(__libc_dlsym(dlopen("libdl.so.2", RTLD_LAZY), "dlsym"));
     return (*internal_dlsym)(handle, symbol);
 }
+/*
+//FnDlopen* real_dlopen = nullptr;
+void* dlopen_handle = nullptr;
 
-static void* dlopen_handle;
 void *dlopen(const char *filename, int flags) {
-    FnDlopen* real_dlopen = nullptr;
-    if (real_dlopen == nullptr)
-        real_dlopen = reinterpret_cast<FnDlopen*>(_dl_sym(RTLD_NEXT, "dlopen", reinterpret_cast<void *>(dlopen)));
+    static auto* real_dlopen = func_cast<FnDlopen*>(__libc_dlsym(dlopen("libdl.so.2", RTLD_LAZY), "dlopen"));
     dlopen_handle = real_dlopen(filename, flags);
     return dlopen_handle;
 }
@@ -45,5 +46,6 @@ void *dlopen(const char *filename, int flags) {
 void *get_dlopen_handle() {
     return dlopen_handle;
 }
+*/
 
 } // namespace wxgpumemmgr
