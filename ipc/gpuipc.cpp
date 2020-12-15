@@ -15,6 +15,7 @@
 // Created by Jiarui Fang on 2020/12/15.
 //
 
+#include <mutex>
 #include "gpuipc.h"
 #include <cuda_runtime_api.h>
 #include <iostream> // PipeSwitch
@@ -80,7 +81,7 @@ void sendSharedCache(void * shared_ptr) {
     close(server_fd);
 }
 
-void recvSharedCache() {
+void recvSharedCache(void* shared_ptr) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
     cudaIpcMemHandle_t shared_cache_handle;
 
@@ -106,7 +107,7 @@ void recvSharedCache() {
     read(conn_fd, (void*)(&shared_cache_handle), sizeof(cudaIpcMemHandle_t));
 
     // Extract the pointer
-    cudaError_t err = cudaIpcOpenMemHandle(&PIPESWITCH_shared_ptr, shared_cache_handle, cudaIpcMemLazyEnablePeerAccess);
+    cudaError_t err = cudaIpcOpenMemHandle(&shared_ptr, shared_cache_handle, cudaIpcMemLazyEnablePeerAccess);
     if (err != cudaSuccess) {
         perror("extract_shared_cache");
         exit(EXIT_FAILURE);
