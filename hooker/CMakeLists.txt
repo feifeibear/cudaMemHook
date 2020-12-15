@@ -11,6 +11,7 @@ target_compile_definitions(cuda_hooker
 
 target_link_libraries(cuda_hooker
         PRIVATE
+        loguru
         ${CMAKE_DL_LIBS}
         )
 
