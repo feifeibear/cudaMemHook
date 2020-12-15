@@ -27,7 +27,7 @@ TEST_CASE("cuda ipc", "init") {
     constexpr size_t N = 5;
     if (pid == 0) {
         printf("Child process!n");
-        std::unique_ptr<float> host_send_data = std::make_unique<float>(new float [N]);
+        std::unique_ptr<float[]> host_send_data(new float [N]);
         for(size_t i = 0; i < N; ++i) {
             host_send_data[i] = 1. * i;
         }
@@ -39,7 +39,7 @@ TEST_CASE("cuda ipc", "init") {
         void* dev_recv_data;
         sleep(5);
         recvSharedCache(dev_recv_data);
-        std::unique_ptr<float> host_recv_data = std::make_unique<float>(new float [N]);
+        std::unique_ptr<float[]> host_recv_data(new float [N]);
         cudaMemcpy(host_recv_data.get(), dev_recv_data, N*sizeof(float), cudaMemcpyDeviceToHost);
         for(size_t i = 0; i < N; ++i) {
             printf("%f\n", host_recv_data[i]);
