@@ -4,10 +4,10 @@ project(gpuMemMgr)
 set(CMAKE_CXX_STANDARD 14)
 
 add_library(cuda_hooker SHARED
-        dlsym_hook.cpp
+        dlsymhooker.cpp
         realdlsym.cpp
         cudahooker.cpp
-        cuda_kernels.cpp)
+        cudakernels.cpp)
 
 target_compile_definitions(cuda_hooker
         PRIVATE

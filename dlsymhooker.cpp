@@ -11,4 +11,8 @@
 // permissions and limitations under the License.
 // See the AUTHORS file for names of contributors.
 
-#include "cuda_kernels.h"
+//
+// Created by Jiarui Fang on 2020/12/14.
+//
+
+#include "dlsymhooker.h"

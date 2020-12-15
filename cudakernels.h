@@ -29,10 +29,10 @@ int wx_cuMemAlloc_v2(uintptr_t *devPtr, size_t size) {
     int ret;
 
     static cuda_mem_alloc_v2_fp orig_cuda_mem_alloc_v2 = nullptr;
-    if (orig_cuda_mem_alloc_v2 == nullptr)
+    if (orig_cuda_mem_alloc_v2 == nullptr) {
         orig_cuda_mem_alloc_v2 = reinterpret_cast<cuda_mem_alloc_v2_fp>(real_dlsym(get_dlopen_handle(),
                                                                                    "cuMemAlloc_v2"));
-
+    }
     ret = orig_cuda_mem_alloc_v2(devPtr, size);
 
     return ret;
