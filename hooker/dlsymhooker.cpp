@@ -22,9 +22,10 @@ void *dlsym(void * handle, const char * symbol) __DYLDDL_DRIVERKIT_UNAVAILABLE {
 void *dlsym(void *handle, const char *symbol) noexcept {
 #endif
     auto& hooker = wxgpumemmgr::CudaHook::instance();
-    if (hooker.IsValid(symbol)) {
+    void* fn_ptr = hooker.GetFunction(symbol);
+    if (fn_ptr != nullptr) {
       printf("hooking %s\n", symbol);
-        return hooker.GetFunction(symbol);
+      return fn_ptr;
     }
     printf("dlsym loading %s\n", symbol);
     return wxgpumemmgr::real_dlsym(handle, symbol);

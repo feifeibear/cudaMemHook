@@ -23,5 +23,7 @@ extern "C" {
 
 extern int wx_cuMemAlloc_v2(uintptr_t *devPtr, size_t size);
 extern int wx_cuMemFree_v2(uintptr_t ptr);
+extern int wx_cuMemAlloc(uintptr_t *devPtr, size_t size);
+extern int wx_cuMemFree(uintptr_t ptr);
 
 } // extern "C"

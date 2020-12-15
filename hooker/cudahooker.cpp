@@ -31,13 +31,13 @@ CudaHook &CudaHook::instance()
     return hook;
 }
 
-bool CudaHook::IsValid(const char* symbol) const {
-    if (strcmp(symbol, "cuMemFree_v2") == 0 || strcmp(symbol, "cuMemAlloc_v2") == 0) {
-        return true;
-    } else {
-        return false;
-    }
-}
+//bool CudaHook::IsValid(const char* symbol) const {
+//    if (strcmp(symbol, "cuMemFree_v2") == 0 || strcmp(symbol, "cuMemAlloc_v2") == 0) {
+//        return true;
+//    } else {
+//        return false;
+//    }
+//}
 
 void* CudaHook::GetFunction(const char* symbol) {
     if (strcmp(symbol, "cuMemFree_v2") == 0) {
@@ -45,8 +45,7 @@ void* CudaHook::GetFunction(const char* symbol) {
     } else if (strcmp(symbol, "cuMemAlloc_v2") == 0) {
         return reinterpret_cast<void *>(wx_cuMemAlloc_v2);
     } else {
-        std::cerr << "CudaHook GetFunction's parameter is invalid" << std::endl;
-        std::exit(-2);
+        return nullptr;
     }
 }
 
