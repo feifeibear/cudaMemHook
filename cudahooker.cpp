@@ -15,6 +15,7 @@
 #include <cstring>
 #include <set>
 #include <iostream>
+
 namespace wxgpumemmgr{
 //TODO substitude it with API of a global cuda allocator.
 
@@ -45,6 +46,8 @@ struct CudaHook::Impl {
     }
 };
 
+
+CudaHook::CudaHook() : m_(std::make_unique<Impl>()) {};
 
 CudaHook &CudaHook::instance()
 {
