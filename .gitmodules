@@ -1,3 +1,6 @@
 [submodule "3rd/abseil-cpp"]
 	path = 3rd/abseil-cpp
 	url = https://github.com/abseil/abseil-cpp.git
+[submodule "3rd/loguru"]
+	path = 3rd/loguru
+	url = https://github.com/emilk/loguru.git
