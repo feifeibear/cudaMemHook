@@ -11,6 +11,36 @@
 // permissions and limitations under the License.
 // See the AUTHORS file for names of contributors.
 
-//
-// Created by Jiarui Fang on 2020/12/15.
-//
+#include "gpuipc.h"
+#include "catch2/catch.hpp"
+
+namespace wxgpumemmgr {
+namespace ipc {
+
+TEST_CASE("cuda ipc", "init") {
+    pid_t pid;
+
+    constexpr int N = 1<<5;
+    if (pid == 0) {
+        // 子行程
+        printf("Child process!n");
+        void* d_x;
+        cudaMalloc(&d_x, N*sizeof(float));
+        sendSharedCache(d_x);
+
+    } else if (pid > 0) {
+        // 父行程
+        void* d_y;
+        recvSharedCache(d_x);
+        printf("Parent process!n");
+    } else {
+        // 錯誤
+        printf("Error!n");
+    }
+
+    return 0;
+}
+
+
+}  // namespace ipc
+}  // namespace wxgpumemmgr

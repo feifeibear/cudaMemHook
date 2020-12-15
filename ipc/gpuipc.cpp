@@ -31,7 +31,7 @@
 
 
 namespace wxgpumemmgr {
-
+namespace ipc {
 static std::recursive_mutex mutex;
 
 void sendSharedCache(void * shared_ptr) {
@@ -115,4 +115,7 @@ void recvSharedCache(void* shared_ptr) {
 
     close(conn_fd);
 }
+
+
+} // namespace ipc
 } // namespace wxgpumemmgr

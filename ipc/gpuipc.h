@@ -14,8 +14,10 @@
 #pragma once
 
 namespace wxgpumemmgr {
-
+namespace ipc {
 
 void sendSharedCache(void * shared_ptr);
+void recvSharedCache(void* shared_ptr);
 
+} // namespace ipc
 } // namespace wxgpumemmgr
