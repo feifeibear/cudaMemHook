@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+service CudaAllocator {
+  rpc Malloc (MallocRequest) returns (MallocReply) {}
+  rpc Free (FreeRequest) returns (FreeReply) {}
+}
+
+message MallocRequest {
+  uint64 size = 1;
+}
+
+message MallocReply {
+  bytes mem_handle = 1;
+}
+
+message FreeRequest {
+  uint64 ptr_to_free = 1;
+}
+
+message FreeReply {}
