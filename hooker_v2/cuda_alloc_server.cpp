@@ -41,8 +41,9 @@ CudaAllocServer::CudaAllocServer() {
   auto handle = dlopen(cuda_lib.c_str(), RTLD_LAZY | RTLD_GLOBAL);
   auto real_dlsym = GetRealDlsym();
   cuda_malloc_ =
-      reinterpret_cast<CudaMallocFn *>(real_dlsym(handle, "cudaMalloc"));
-  cuda_free_ = reinterpret_cast<CudaFreeFn *>(real_dlsym(handle, "cudaFree"));
+      reinterpret_cast<CudaMallocFn *>(real_dlsym(handle, "cuMemAlloc_v2"));
+  cuda_free_ =
+      reinterpret_cast<CudaFreeFn *>(real_dlsym(handle, "cuMemFree_v2"));
 }
 
 grpc::Status CudaAllocServer::Malloc(grpc::ServerContext *context,
@@ -50,20 +51,21 @@ grpc::Status CudaAllocServer::Malloc(grpc::ServerContext *context,
                                      ::MallocReply *response) {
   LOG_S(INFO) << "[CudaAllocServer::Malloc] << invoke with size = "
               << request->size();
-  void *ptr;
+  uintptr_t ptr;
   cuda_malloc_(&ptr, request->size());
   cudaIpcMemHandle_t mem_handle;
-  checkCudaErrors(cudaIpcGetMemHandle(&mem_handle, ptr));
+  checkCudaErrors(
+      cudaIpcGetMemHandle(&mem_handle, reinterpret_cast<void *>(ptr)));
   response->set_mem_handle(&mem_handle, sizeof(mem_handle));
   LOG_S(INFO) << "[CudaAllocServer::Malloc] << return with new malloced ptr = "
               << ptr;
+  return grpc::Status::OK;
 }
 
 grpc::Status CudaAllocServer::Free(grpc::ServerContext *context,
                                    const FreeRequest *request,
                                    FreeReply *response) {
-  void *to_free =
-      reinterpret_cast<void *>(static_cast<intptr_t>(request->ptr_to_free()));
+  uintptr_t to_free = static_cast<intptr_t>(request->ptr_to_free());
   LOG_S(INFO) << "[CudaAllocServer::Free] << invoke with ptr = " << to_free;
   cuda_free_(to_free);
   return grpc::Status::OK;

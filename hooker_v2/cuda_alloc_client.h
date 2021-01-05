@@ -25,17 +25,17 @@ class CudaAllocClient {
 public:
   static CudaAllocClient CreateClient();
 
-  void *Malloc(size_t size);
+  uintptr_t Malloc(size_t size);
 
-  void Free(void *ptr);
+  void Free(uintptr_t ptr);
 
 private:
   std::unique_ptr<CudaAllocator::Stub> stub_;
 };
 
 extern "C" {
-extern int Malloc(void **ptr, size_t size);
-extern int Free(void *ptr);
+extern int Malloc(uintptr_t *ptr, size_t size);
+extern int Free(uintptr_t ptr);
 extern void *Dlsym(void *handle, const char *symbol);
 }
 

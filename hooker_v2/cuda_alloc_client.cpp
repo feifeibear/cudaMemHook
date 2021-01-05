@@ -28,7 +28,7 @@ CudaAllocClient CudaAllocClient::CreateClient() {
   return client;
 }
 
-void *CudaAllocClient::Malloc(size_t size) {
+uintptr_t CudaAllocClient::Malloc(size_t size) {
   LOG_S(INFO) << "[CudaAllocClient::Malloc], invoke with size = " << size;
   MallocRequest request;
   request.set_size(size);
@@ -41,14 +41,14 @@ void *CudaAllocClient::Malloc(size_t size) {
   memcpy(&mem_handle, reply.mem_handle().data(), sizeof(mem_handle));
   cudaIpcOpenMemHandle(&ptr, mem_handle, cudaIpcMemLazyEnablePeerAccess);
   LOG_S(INFO) << "[CudaAllocClient::Malloc] get ptr = " << ptr;
-  return ptr;
+  return reinterpret_cast<uintptr_t>(ptr);
 }
 
-void CudaAllocClient::Free(void *ptr) {
+void CudaAllocClient::Free(uintptr_t ptr) {
   LOG_S(INFO) << "[CudaAllocClient::Free], invoke with ptr = " << ptr;
-  cudaIpcCloseMemHandle(ptr);
+  cudaIpcCloseMemHandle(reinterpret_cast<void *>(ptr));
   FreeRequest request;
-  request.set_ptr_to_free(reinterpret_cast<uintptr_t>(ptr));
+  request.set_ptr_to_free(ptr);
   FreeReply reply;
   grpc::ClientContext context;
   auto status = stub_->Free(&context, request, &reply);
@@ -57,13 +57,13 @@ void CudaAllocClient::Free(void *ptr) {
 
 extern "C" {
 
-int Malloc(void **ptr, size_t size) {
+int Malloc(uintptr_t *ptr, size_t size) {
   static CudaAllocClient client = CudaAllocClient::CreateClient();
   *ptr = client.Malloc(size);
   return 0; // TODO
 }
 
-int Free(void *ptr) {
+int Free(uintptr_t ptr) {
   static CudaAllocClient client = CudaAllocClient::CreateClient();
   client.Free(ptr);
   return 0; // TODO;
