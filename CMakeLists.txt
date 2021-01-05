@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 project(turbo_hooker)
+enable_language(CUDA)
 
 set(CMAKE_CXX_STANDARD 14)
 add_subdirectory(3rd)

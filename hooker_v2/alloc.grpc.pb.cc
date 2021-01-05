@@ -37,19 +37,19 @@ CudaAllocator::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& chan
   {}
 
 ::grpc::Status CudaAllocator::Stub::Malloc(::grpc::ClientContext* context, const ::MallocRequest& request, ::MallocReply* response) {
-  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_Malloc_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall< ::MallocRequest, ::MallocReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Malloc_, context, request, response);
 }
 
 void CudaAllocator::Stub::experimental_async::Malloc(::grpc::ClientContext* context, const ::MallocRequest* request, ::MallocReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Malloc_, context, request, response, std::move(f));
+  ::grpc::internal::CallbackUnaryCall< ::MallocRequest, ::MallocReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Malloc_, context, request, response, std::move(f));
 }
 
 void CudaAllocator::Stub::experimental_async::Malloc(::grpc::ClientContext* context, const ::MallocRequest* request, ::MallocReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_Malloc_, context, request, response, reactor);
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Malloc_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::MallocReply>* CudaAllocator::Stub::PrepareAsyncMallocRaw(::grpc::ClientContext* context, const ::MallocRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::MallocReply>::Create(channel_.get(), cq, rpcmethod_Malloc_, context, request, false);
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::MallocReply, ::MallocRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Malloc_, context, request);
 }
 
 ::grpc::ClientAsyncResponseReader< ::MallocReply>* CudaAllocator::Stub::AsyncMallocRaw(::grpc::ClientContext* context, const ::MallocRequest& request, ::grpc::CompletionQueue* cq) {
@@ -60,19 +60,19 @@ void CudaAllocator::Stub::experimental_async::Malloc(::grpc::ClientContext* cont
 }
 
 ::grpc::Status CudaAllocator::Stub::Free(::grpc::ClientContext* context, const ::FreeRequest& request, ::FreeReply* response) {
-  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_Free_, context, request, response);
+  return ::grpc::internal::BlockingUnaryCall< ::FreeRequest, ::FreeReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Free_, context, request, response);
 }
 
 void CudaAllocator::Stub::experimental_async::Free(::grpc::ClientContext* context, const ::FreeRequest* request, ::FreeReply* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Free_, context, request, response, std::move(f));
+  ::grpc::internal::CallbackUnaryCall< ::FreeRequest, ::FreeReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Free_, context, request, response, std::move(f));
 }
 
 void CudaAllocator::Stub::experimental_async::Free(::grpc::ClientContext* context, const ::FreeRequest* request, ::FreeReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_Free_, context, request, response, reactor);
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Free_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::FreeReply>* CudaAllocator::Stub::PrepareAsyncFreeRaw(::grpc::ClientContext* context, const ::FreeRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::FreeReply>::Create(channel_.get(), cq, rpcmethod_Free_, context, request, false);
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::FreeReply, ::FreeRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Free_, context, request);
 }
 
 ::grpc::ClientAsyncResponseReader< ::FreeReply>* CudaAllocator::Stub::AsyncFreeRaw(::grpc::ClientContext* context, const ::FreeRequest& request, ::grpc::CompletionQueue* cq) {
@@ -86,7 +86,7 @@ CudaAllocator::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       CudaAllocator_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< CudaAllocator::Service, ::MallocRequest, ::MallocReply>(
+      new ::grpc::internal::RpcMethodHandler< CudaAllocator::Service, ::MallocRequest, ::MallocReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](CudaAllocator::Service* service,
              ::grpc::ServerContext* ctx,
              const ::MallocRequest* req,
@@ -96,7 +96,7 @@ CudaAllocator::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       CudaAllocator_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< CudaAllocator::Service, ::FreeRequest, ::FreeReply>(
+      new ::grpc::internal::RpcMethodHandler< CudaAllocator::Service, ::FreeRequest, ::FreeReply, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](CudaAllocator::Service* service,
              ::grpc::ServerContext* ctx,
              const ::FreeRequest* req,

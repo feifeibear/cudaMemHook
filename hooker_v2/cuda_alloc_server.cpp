@@ -34,7 +34,7 @@ grpc::Status CudaAllocServer::Malloc(grpc::ServerContext *context,
                                      const MallocRequest *request,
                                      ::MallocReply *response) {
   void* ptr;
-  checkCudaErrors(cuda_malloc_(&ptr, request->size()));
+  cuda_malloc_(&ptr, request->size());
   cudaIpcMemHandle_t mem_handle;
   checkCudaErrors(cudaIpcGetMemHandle(&mem_handle, ptr));
   response->set_mem_handle(&mem_handle, sizeof(mem_handle));
@@ -65,11 +65,13 @@ void RunServer() {
   server->Wait();
 }
 
-int main(int argc, char** argv) {
-  RunServer();
-
-  return 0;
-}
 
 } // namespace service
 } // namespace turbo_hooker
+
+int main(int argc, char** argv) {
+
+  turbo_hooker::service::RunServer();
+
+  return 0;
+}

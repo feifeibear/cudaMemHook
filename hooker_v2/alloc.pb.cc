@@ -38,6 +38,7 @@ static void InitDefaultsscc_info_FreeReply_alloc_2eproto() {
     new (ptr) ::FreeReply();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
+  ::FreeReply::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_FreeReply_alloc_2eproto =
@@ -51,6 +52,7 @@ static void InitDefaultsscc_info_FreeRequest_alloc_2eproto() {
     new (ptr) ::FreeRequest();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
+  ::FreeRequest::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_FreeRequest_alloc_2eproto =
@@ -64,6 +66,7 @@ static void InitDefaultsscc_info_MallocReply_alloc_2eproto() {
     new (ptr) ::MallocReply();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
+  ::MallocReply::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_MallocReply_alloc_2eproto =
@@ -77,6 +80,7 @@ static void InitDefaultsscc_info_MallocRequest_alloc_2eproto() {
     new (ptr) ::MallocRequest();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
+  ::MallocRequest::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_MallocRequest_alloc_2eproto =
@@ -154,6 +158,8 @@ static bool dynamic_init_dummy_alloc_2eproto = (static_cast<void>(::PROTOBUF_NAM
 
 // ===================================================================
 
+void MallocRequest::InitAsDefaultInstance() {
+}
 class MallocRequest::_Internal {
  public:
 };
@@ -212,6 +218,7 @@ void MallocRequest::Clear() {
 
 const char* MallocRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
@@ -348,6 +355,8 @@ void MallocRequest::InternalSwap(MallocRequest* other) {
 
 // ===================================================================
 
+void MallocReply::InitAsDefaultInstance() {
+}
 class MallocReply::_Internal {
  public:
 };
@@ -363,7 +372,7 @@ MallocReply::MallocReply(const MallocReply& from)
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   mem_handle_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   if (!from._internal_mem_handle().empty()) {
-    mem_handle_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_mem_handle(), 
+    mem_handle_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from._internal_mem_handle(),
       GetArena());
   }
   // @@protoc_insertion_point(copy_constructor:MallocReply)
@@ -406,12 +415,13 @@ void MallocReply::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  mem_handle_.ClearToEmpty();
+  mem_handle_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 const char* MallocReply::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
@@ -549,6 +559,8 @@ void MallocReply::InternalSwap(MallocReply* other) {
 
 // ===================================================================
 
+void FreeRequest::InitAsDefaultInstance() {
+}
 class FreeRequest::_Internal {
  public:
 };
@@ -607,6 +619,7 @@ void FreeRequest::Clear() {
 
 const char* FreeRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
@@ -743,6 +756,8 @@ void FreeRequest::InternalSwap(FreeRequest* other) {
 
 // ===================================================================
 
+void FreeReply::InitAsDefaultInstance() {
+}
 class FreeReply::_Internal {
  public:
 };
@@ -798,6 +813,7 @@ void FreeReply::Clear() {
 
 const char* FreeReply::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
