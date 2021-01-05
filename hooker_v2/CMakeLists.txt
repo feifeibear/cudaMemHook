@@ -1,6 +1,3 @@
-add_library(cuda_hooker_v2 SHARED dlsym_hooker.cpp real_dlsym.cpp)
-
-target_link_libraries(cuda_hooker_v2 PUBLIC ${CMAKE_DL_LIBS})
 find_package(Threads REQUIRED)
 set(protobuf_MODULE_COMPATIBLE TRUE)
 find_package(Protobuf CONFIG REQUIRED)
@@ -24,12 +21,19 @@ add_custom_command(
         ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
         --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
         -I "${alloc_proto_path}"
-	--plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+  --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
         "${alloc_proto}"
-      	DEPENDS "${alloc_proto}")
+        DEPENDS "${alloc_proto}")
+
+add_library(cuda_alloc_client SHARED cuda_alloc_client.cpp)
+target_link_libraries(cuda_alloc_client PUBLIC loguru gRPC::grpc++_reflection gRPC::grpc++ protobuf::libprotobuf ${CUDART_LIBRARY})
+
+add_library(cuda_hooker_v2 SHARED dlsym_hooker.cpp real_dlsym.cpp)
+
+target_link_libraries(cuda_hooker_v2 PUBLIC cuda_alloc_client ${CMAKE_DL_LIBS})
 
 add_executable(server_main cuda_alloc_server.cpp ${alloc_proto_srcs} ${alloc_grpc_srcs})
 
 target_include_directories(server_main PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
-target_link_libraries(server_main PUBLIC cuda_hooker_v2 gRPC::grpc++_reflection gRPC::grpc++ protobuf::libprotobuf ${CUDART_LIBRARY})
+target_link_libraries(server_main PUBLIC cuda_hooker_v2)

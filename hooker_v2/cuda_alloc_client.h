@@ -11,21 +11,33 @@
 // permissions and limitations under the License.
 // See the AUTHORS file for names of contributors.
 
-#include "dlsym_hooker.h"
-#include "cuda_alloc_client.h"
+#pragma once
+
+#include "alloc.grpc.pb.h"
 #include "real_dlsym.h"
+#include <memory>
+#include <unordered_map>
+
+namespace turbo_hooker {
+namespace service {
+
+class CudaAllocClient {
+public:
+  static CudaAllocClient CreateClient();
+
+  void *Malloc(size_t size);
+
+  void Free(void *ptr);
+
+private:
+  std::unique_ptr<CudaAllocator::Stub> stub_;
+};
 
 extern "C" {
-#ifdef __APPLE__
-void *dlsym(void *handle, const char *symbol) __DYLDDL_DRIVERKIT_UNAVAILABLE {
-#else
-void *dlsym(void *handle, const char *symbol) noexcept {
-#endif
-  static auto *real_dlsym = turbo_hooker::GetRealDlsym();
-  void *func = turbo_hooker::service::Dlsym(handle, symbol);
-  if (func != nullptr) {
-    return func;
-  }
-  return real_dlsym(handle, symbol);
+extern int Malloc(void **ptr, size_t size);
+extern int Free(void *ptr);
+extern void *Dlsym(void *handle, const char *symbol);
 }
-}
+
+} // namespace service
+} // namespace turbo_hooker
