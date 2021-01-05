@@ -10,7 +10,21 @@ find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-add_executable(server_main cuda_alloc_server.cpp alloc.pb.cc alloc.grpc.pb.cc)
+set(alloc_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/alloc.pb.cc")
+set(alloc_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/alloc.pb.h")
+set(alloc_grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/alloc.grpc.pb.cc")
+set(alloc_grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/alloc.grpc.pb.h")
+
+add_custom_command(
+        OUTPUT "${alloc_proto_srcs}" "${alloc_proto_hdrs}" "${alloc_grpc_srcs}" "${alloc_grpc_hdrs}"
+        COMMAND protoc
+        ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        --plugin=protoc-gen-grpc=grpc_cpp_plugin
+        ./alloc.proto
+        DEPENDS ./alloc.proto)
+
+add_executable(server_main cuda_alloc_server.cpp ${alloc_proto_srcs} ${alloc_grpc_srcs})
 
 target_include_directories(server_main PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
