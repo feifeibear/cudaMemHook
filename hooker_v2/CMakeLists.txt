@@ -25,7 +25,8 @@ add_custom_command(
         "${alloc_proto}"
         DEPENDS "${alloc_proto}")
 
-add_library(cuda_alloc_client SHARED cuda_alloc_client.cpp)
+add_library(cuda_alloc_client SHARED cuda_alloc_client.cpp ${alloc_proto_srcs} ${alloc_grpc_srcs})
+target_include_directories(cuda_alloc_client PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_link_libraries(cuda_alloc_client PUBLIC loguru gRPC::grpc++_reflection gRPC::grpc++ protobuf::libprotobuf ${CUDART_LIBRARY})
 
 add_library(cuda_hooker_v2 SHARED dlsym_hooker.cpp real_dlsym.cpp)
