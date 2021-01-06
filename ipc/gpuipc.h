@@ -53,8 +53,9 @@ typedef struct ipcBarrier_st
 // };
 
 void sendSharedCache(void * shared_ptr, ipcCUDA_t* s_mem, ipcBarrier_t * barrier, int cnt);
-void recvSharedCache(void * shared_ptr, ipcCUDA_t* s_mem, ipcBarrier_t * barrier, int cnt
+void recvSharedCache(void ** shared_ptr, ipcCUDA_t* s_mem, ipcBarrier_t * barrier, int cnt
 );
+void cleanSharedCache(void ** shared_ptr, ipcCUDA_t* s_mem, ipcBarrier_t * barrier, int cnt);
 
 } // namespace ipc
 } // namespace wxgpumemmgr

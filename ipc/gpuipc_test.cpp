@@ -62,34 +62,39 @@ TEST_CASE("cuda ipc", "init") {
     if (index == 0)
     {
         std::cerr << "parent process" << std::endl;
-        // void* cached_mem = server.getMemoryCache(0);
-        // std::unique_ptr<int[]> h_memory = std::make_unique<int[]>(100 / sizeof(int));
-        // for (auto i = 0; i < 100 / sizeof(int); ++i) {
-        //     h_memory[i] = i;
-        // }
+        std::unique_ptr<int[]> h_memory = std::make_unique<int[]>(100 / sizeof(int));
+        for (auto i = 0; i < 100 / sizeof(int); ++i) {
+            h_memory[i] = i;
+        }
         void* memory_cache_;
         cudaMalloc((void **) &memory_cache_, 100);
 
+        cudaMemcpy((void *) memory_cache_,
+                                    (void *) h_memory.get(),
+                                    100,
+                                    cudaMemcpyHostToDevice);
+
         sendSharedCache(memory_cache_, &s_mem[0], g_barrier, 2);
 
-        // cudaMemcpy((void *) memory_cache_,
-        //                             (void *) h_memory.get(),
-        //                             100,
-        //                             cudaMemcpyHostToDevice);
+
     } else {
         std::cerr << "child process" << std::endl;
         void* cached_mem;
-        recvSharedCache(cached_mem, &s_mem[0], g_barrier, 2);
+        recvSharedCache(&cached_mem, &s_mem[0], g_barrier, 2);
 
-        //访问子线程的内存地址，看5个
-        // std::unique_ptr<int[]> h_memory = std::make_unique<int[]>(5);
-        // cudaMemcpy((void *) h_memory.get(),
-        //                         (void *) cached_mem,
-        //                         5,
-        //                         cudaMemcpyDeviceToHost);
-        // for(int i = 0; i < 5; ++i) {
-        //     std::cerr << i << " " << *((int*)cached_mem + i) << std::endl;
-        // }
+        //对显存进行操作
+        //这里访问子线程的内存地址，看5个
+        std::unique_ptr<int[]> h_memory = std::make_unique<int[]>(5);
+        cudaMemcpy((void *) h_memory.get(),
+                                (void *) cached_mem,
+                                5 * sizeof(int),
+                                cudaMemcpyDeviceToHost);
+        for(int i = 0; i < 5; ++i) {
+            std::cerr << i << " " << h_memory[i] << std::endl;
+        }
+
+        //清除内存并关闭和server连接
+        cleanSharedCache(&cached_mem, &s_mem[0], g_barrier, 2);
     }
 
     // Cleanup and shutdown
