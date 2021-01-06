@@ -37,4 +37,4 @@ add_executable(server_main cuda_alloc_server.cpp ${alloc_proto_srcs} ${alloc_grp
 
 target_include_directories(server_main PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
-target_link_libraries(server_main PUBLIC cuda_hooker_v2)
+target_link_libraries(server_main PUBLIC loguru gRPC::grpc++_reflection gRPC::grpc++ protobuf::libprotobuf ${CUDART_LIBRARY})

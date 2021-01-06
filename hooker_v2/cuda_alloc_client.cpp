@@ -39,14 +39,14 @@ uintptr_t CudaAllocClient::Malloc(size_t size) {
   void *ptr;
   cudaIpcMemHandle_t mem_handle;
   memcpy(&mem_handle, reply.mem_handle().data(), sizeof(mem_handle));
-  cudaIpcOpenMemHandle(&ptr, mem_handle, cudaIpcMemLazyEnablePeerAccess);
+  assert(cudaIpcOpenMemHandle(&ptr, mem_handle, cudaIpcMemLazyEnablePeerAccess) == 0);
   LOG_S(INFO) << "[CudaAllocClient::Malloc] get ptr = " << ptr;
   return reinterpret_cast<uintptr_t>(ptr);
 }
 
 void CudaAllocClient::Free(uintptr_t ptr) {
   LOG_S(INFO) << "[CudaAllocClient::Free], invoke with ptr = " << ptr;
-  cudaIpcCloseMemHandle(reinterpret_cast<void *>(ptr));
+  assert(cudaIpcCloseMemHandle(reinterpret_cast<void *>(ptr)) == 0);
   FreeRequest request;
   request.set_ptr_to_free(ptr);
   FreeReply reply;
@@ -70,9 +70,9 @@ int Free(uintptr_t ptr) {
 }
 
 void *Dlsym(void *handle, const char *symbol) {
-  if (strcmp(symbol, "cudaMalloc") == 0) {
+  if (strcmp(symbol, "cuMemAlloc_v2") == 0) {
     return reinterpret_cast<void *>(Malloc);
-  } else if (strcmp(symbol, "cudaFree") == 0) {
+  } else if (strcmp(symbol, "cuMemFree_v2") == 0) {
     return reinterpret_cast<void *>(Free);
   }
   return nullptr;
