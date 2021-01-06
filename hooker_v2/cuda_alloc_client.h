@@ -17,6 +17,7 @@
 #include "real_dlsym.h"
 #include <memory>
 #include <unordered_map>
+#include <mutex>
 
 namespace turbo_hooker {
 namespace service {
@@ -31,6 +32,7 @@ public:
 private:
   std::unique_ptr<CudaAllocator::Stub> stub_;
   std::unordered_map<uintptr_t, Allocation> allocations_;
+  std::mutex mtx_;
 };
 
 extern "C" {

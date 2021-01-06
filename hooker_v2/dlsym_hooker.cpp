@@ -24,10 +24,8 @@ void *dlsym(void *handle, const char *symbol) noexcept {
   static auto *real_dlsym = turbo_hooker::GetRealDlsym();
   void *func = turbo_hooker::service::Dlsym(handle, symbol);
   if (func != nullptr) {
-    printf("Good\n");
     return func;
   }
-  printf("Bad with %s\n", symbol);
   return real_dlsym(handle, symbol);
 }
 }

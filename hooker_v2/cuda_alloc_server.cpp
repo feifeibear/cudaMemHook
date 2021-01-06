@@ -20,37 +20,8 @@
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/health_check_service_interface.h>
 
-// using DlsymFn = void *(void *, const char *);
-//
-// extern "C" {
-//// For interposing dlsym(). See elf/dl-libc.c for the internal dlsym interface
-//// function
-// void *__libc_dlsym(void *map, const char *name);
-//}
-//
-// namespace turbo_hooker {
-// template <typename FnPtrT> constexpr auto func_cast(void *ptr) noexcept {
-//  return reinterpret_cast<FnPtrT>(reinterpret_cast<intptr_t>(ptr));
-//}
-//
-// DlsymFn *GetRealDlsym() noexcept {
-//  return func_cast<DlsymFn *>(
-//      __libc_dlsym(dlopen("libdl.so.2", RTLD_LAZY), "dlsym"));
-//}
-//}
-
 namespace turbo_hooker {
 namespace service {
-
-// CudaAllocServer::CudaAllocServer() {
-//  const std::string cuda_lib = "libcuda.so";
-//  auto handle = dlopen(cuda_lib.c_str(), RTLD_LAZY | RTLD_GLOBAL);
-//  auto real_dlsym = GetRealDlsym();
-//  cuda_malloc_ =
-//     reinterpret_cast<CudaMallocFn *>(real_dlsym(handle, "cuMemAlloc_v2"));
-//  cuda_free_ =
-//      reinterpret_cast<CudaFreeFn *>(real_dlsym(handle, "cuMemFree_v2"));
-//}
 
 CudaAllocServer::CudaAllocServer() = default;
 

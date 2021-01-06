@@ -19,10 +19,12 @@
 namespace turbo_hooker {
 namespace service {
 
-static CudaAllocClient gClient = []() {
+static std::unique_ptr<CudaAllocClient> gClient = nullptr;
+
+std::unique_ptr<CudaAllocClient> CreateClient() {
   const std::string server = "localhost:50051"; // TODO: only for test
-  return CudaAllocClient(server);
-}();
+  return std::make_unique<CudaAllocClient>(server);
+};
 
 CudaAllocClient::CudaAllocClient(const std::string &server_address) {
   auto channel =
@@ -45,6 +47,7 @@ uintptr_t CudaAllocClient::Malloc(size_t size) {
                               cudaIpcMemLazyEnablePeerAccess) == 0);
   LOG_S(INFO) << "[CudaAllocClient::Malloc] get ptr = " << ptr;
   auto ptr_int = reinterpret_cast<uintptr_t>(ptr);
+  std::lock_guard<std::mutex> lck(mtx_);
   allocations_[ptr_int] = reply.allocation();
   return ptr_int;
 }
@@ -58,17 +61,25 @@ void CudaAllocClient::Free(uintptr_t ptr) {
   grpc::ClientContext context;
   auto status = stub_->Free(&context, request, &reply);
   assert(status.ok());
+  std::lock_guard<std::mutex> lck(mtx_);
+  allocations_.erase(ptr);
 }
 
 extern "C" {
 
 int Malloc(uintptr_t *ptr, size_t size) {
-  *ptr = gClient.Malloc(size);
+  if (gClient == nullptr) {
+    gClient = CreateClient();
+  }
+  *ptr = gClient->Malloc(size);
   return 0; // TODO
 }
 
 int Free(uintptr_t ptr) {
-  gClient.Free(ptr);
+  if (gClient == nullptr) {
+    gClient = CreateClient();
+  }
+  gClient->Free(ptr);
   return 0; // TODO;
 }
 
