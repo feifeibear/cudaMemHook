@@ -11,45 +11,102 @@
 // permissions and limitations under the License.
 // See the AUTHORS file for names of contributors.
 
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "gpuipc.h"
 #include "catch2/catch.hpp"
 #include "cuda_runtime.h"
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/mman.h>
+#include <iostream>
+#include <cstring>
 
 namespace wxgpumemmgr {
 namespace ipc {
 
 TEST_CASE("cuda ipc", "init") {
-    pid_t pid;
+    constexpr int process_cnt = 2;
+    ipcCUDA_t *s_mem = (ipcCUDA_t *) mmap(NULL, process_cnt * sizeof(ipcCUDA_t),
+                                        PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
+    assert(MAP_FAILED != s_mem);
 
-    pid = fork();
-    constexpr size_t N = 5;
-    if (pid == 0) {
-        printf("Child process!\n");
-        std::unique_ptr<float[]> host_send_data(new float [N]);
-        for(size_t i = 0; i < N; ++i) {
-            host_send_data[i] = 1. * i;
+    std::cerr << "I am in cuda ipc unitest" << std::endl;
+    // initialize shared memory
+    memset((void *) s_mem, 0, process_cnt * sizeof(*s_mem));
+    int index = 0;
+
+    ipcBarrier_t *g_barrier = (ipcBarrier_t *) mmap(NULL, sizeof(ipcBarrier_t),
+                                      PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
+    assert(MAP_FAILED != g_barrier);
+    memset((void *) g_barrier, 0, sizeof(*g_barrier));
+
+    // index表示当前进程的索引
+    // 父进程的s_mem[index]存储它子进程的pid
+    for (int i = 1; i < process_cnt; i++)
+    {
+        int pid = fork();
+        if (pid == 0)
+        {
+            //子进程
+            index = i;
+            break;
+        } else {
+            //父程序
+            std::cerr << "I launch a child process " << pid << std::endl;
+            s_mem[i].pid = pid;
         }
-        void* dev_send_data;
-        cudaMalloc(&dev_send_data, N*sizeof(float));
-        cudaMemcpy(dev_send_data, host_send_data.get(), N*sizeof(float), cudaMemcpyHostToDevice);
-        sendSharedCache(dev_send_data);
-        sleep(15);
-    } else if (pid > 0) {
-        printf("Parent process!\n");
-        void* dev_recv_data;
-        sleep(5);
-        recvSharedCache(dev_recv_data);
-        std::unique_ptr<float[]> host_recv_data(new float [N]);
-        cudaMemcpy(host_recv_data.get(), dev_recv_data, N*sizeof(float), cudaMemcpyDeviceToHost);
-        for(size_t i = 0; i < N; ++i) {
-            printf("%f\n", host_recv_data[i]);
-        }
-        sleep(5);
-    } else {
-        printf("Error!n");
     }
+
+    //父进程
+    if (index == 0)
+    {
+        std::cerr << "parent process" << std::endl;
+        // void* cached_mem = server.getMemoryCache(0);
+        // std::unique_ptr<int[]> h_memory = std::make_unique<int[]>(100 / sizeof(int));
+        // for (auto i = 0; i < 100 / sizeof(int); ++i) {
+        //     h_memory[i] = i;
+        // }
+        void* memory_cache_;
+        cudaMalloc((void **) &memory_cache_, 100);
+
+        sendSharedCache(memory_cache_, &s_mem[0], g_barrier, 2);
+
+        // cudaMemcpy((void *) memory_cache_,
+        //                             (void *) h_memory.get(),
+        //                             100,
+        //                             cudaMemcpyHostToDevice);
+    } else {
+        std::cerr << "child process" << std::endl;
+        void* cached_mem;
+        recvSharedCache(cached_mem, &s_mem[0], g_barrier, 2);
+
+        //访问子线程的内存地址，看5个
+        // std::unique_ptr<int[]> h_memory = std::make_unique<int[]>(5);
+        // cudaMemcpy((void *) h_memory.get(),
+        //                         (void *) cached_mem,
+        //                         5,
+        //                         cudaMemcpyDeviceToHost);
+        // for(int i = 0; i < 5; ++i) {
+        //     std::cerr << i << " " << *((int*)cached_mem + i) << std::endl;
+        // }
+    }
+
+    // Cleanup and shutdown
+    if (index == 0)
+    {
+        // wait for processes to complete
+        for (int i = 1; i < process_cnt; i++)
+        {
+            int status;
+            waitpid(s_mem[i].pid, &status, 0);
+            assert(WIFEXITED(status));
+        }
+
+        printf("\nShutting down...\n");
+        exit(EXIT_SUCCESS);
+    }
+
 }
 
 

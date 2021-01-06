@@ -12,12 +12,49 @@
 // See the AUTHORS file for names of contributors.
 
 #pragma once
+#include <stdlib.h>
+// CUDA utilities and system includes
+#include <cuda_runtime_api.h>
 
 namespace wxgpumemmgr {
 namespace ipc {
 
-void sendSharedCache(void * shared_ptr);
-void recvSharedCache(void* shared_ptr);
+typedef struct ipcCUDA_st
+{
+    int device;
+    pid_t pid;
+    cudaIpcEventHandle_t eventHandle;
+    cudaIpcMemHandle_t memHandle;
+} ipcCUDA_t;
+
+typedef struct ipcBarrier_st
+{
+    int count;
+    bool sense;
+    bool allExit;
+} ipcBarrier_t;
+
+// class Server {
+//   public:
+//     static Server& getInstance() {
+//       static Server server;
+//       return server;
+//     }
+//     void* getMemoryCache(size_t offset);
+//     ~Server();
+//   private:
+//     void initSharedCache();
+
+//     Server() : memory_cache_{nullptr}, capacity_(100 * sizeof(int)) {
+//       initSharedCache();
+//     }
+//     void* memory_cache_;
+//     size_t capacity_;
+// };
+
+void sendSharedCache(void * shared_ptr, ipcCUDA_t* s_mem, ipcBarrier_t * barrier, int cnt);
+void recvSharedCache(void * shared_ptr, ipcCUDA_t* s_mem, ipcBarrier_t * barrier, int cnt
+);
 
 } // namespace ipc
 } // namespace wxgpumemmgr
