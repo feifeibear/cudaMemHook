@@ -19,13 +19,15 @@
 namespace turbo_hooker {
 namespace service {
 
-CudaAllocClient CudaAllocClient::CreateClient() {
+static CudaAllocClient gClient = []() {
   const std::string server = "localhost:50051"; // TODO: only for test
+  return CudaAllocClient(server);
+}();
+
+CudaAllocClient::CudaAllocClient(const std::string &server_address) {
   auto channel =
-      grpc::CreateChannel(server, grpc::InsecureChannelCredentials());
-  CudaAllocClient client;
-  client.stub_ = CudaAllocator::NewStub(channel);
-  return client;
+      grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
+  stub_ = CudaAllocator::NewStub(channel);
 }
 
 uintptr_t CudaAllocClient::Malloc(size_t size) {
@@ -36,19 +38,22 @@ uintptr_t CudaAllocClient::Malloc(size_t size) {
   grpc::ClientContext context;
   auto status = stub_->Malloc(&context, request, &reply);
   assert(status.ok());
-  void *ptr;
   cudaIpcMemHandle_t mem_handle;
   memcpy(&mem_handle, reply.mem_handle().data(), sizeof(mem_handle));
-  assert(cudaIpcOpenMemHandle(&ptr, mem_handle, cudaIpcMemLazyEnablePeerAccess) == 0);
+  void *ptr;
+  assert(cudaIpcOpenMemHandle(&ptr, mem_handle,
+                              cudaIpcMemLazyEnablePeerAccess) == 0);
   LOG_S(INFO) << "[CudaAllocClient::Malloc] get ptr = " << ptr;
-  return reinterpret_cast<uintptr_t>(ptr);
+  auto ptr_int = reinterpret_cast<uintptr_t>(ptr);
+  allocations_[ptr_int] = reply.allocation();
+  return ptr_int;
 }
 
 void CudaAllocClient::Free(uintptr_t ptr) {
   LOG_S(INFO) << "[CudaAllocClient::Free], invoke with ptr = " << ptr;
   assert(cudaIpcCloseMemHandle(reinterpret_cast<void *>(ptr)) == 0);
   FreeRequest request;
-  request.set_ptr_to_free(ptr);
+  request.set_ptr_to_free(allocations_.at(ptr).ptr());
   FreeReply reply;
   grpc::ClientContext context;
   auto status = stub_->Free(&context, request, &reply);
@@ -58,14 +63,12 @@ void CudaAllocClient::Free(uintptr_t ptr) {
 extern "C" {
 
 int Malloc(uintptr_t *ptr, size_t size) {
-  static CudaAllocClient client = CudaAllocClient::CreateClient();
-  *ptr = client.Malloc(size);
+  *ptr = gClient.Malloc(size);
   return 0; // TODO
 }
 
 int Free(uintptr_t ptr) {
-  static CudaAllocClient client = CudaAllocClient::CreateClient();
-  client.Free(ptr);
+  gClient.Free(ptr);
   return 0; // TODO;
 }
 

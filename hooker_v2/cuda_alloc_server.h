@@ -14,7 +14,6 @@
 #pragma once
 
 #include "alloc.grpc.pb.h"
-// #include "real_dlsym.h"
 #include <grpcpp/grpcpp.h>
 
 namespace turbo_hooker {
@@ -31,10 +30,6 @@ public:
 
   grpc::Status Free(grpc::ServerContext *context, const FreeRequest *request,
                     FreeReply *response) override;
-
-private:
-  CudaMallocFn *cuda_malloc_;
-  CudaFreeFn *cuda_free_;
 };
 
 } // namespace service

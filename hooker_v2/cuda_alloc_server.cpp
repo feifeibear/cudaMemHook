@@ -14,77 +14,61 @@
 #include "cuda_alloc_server.h"
 #include "alloc.pb.h"
 #include "loguru.hpp"
-// #include "real_dlsym.h"
 #include <cstdint>
 #include <cuda_runtime.h>
 #include <dlfcn.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/health_check_service_interface.h>
-#include <cuda.h>
 
-using DlsymFn = void *(void *, const char *);
-
-extern "C" {
-// For interposing dlsym(). See elf/dl-libc.c for the internal dlsym interface
-// function
-void *__libc_dlsym(void *map, const char *name);
-}
-
-namespace turbo_hooker {
-template <typename FnPtrT> constexpr auto func_cast(void *ptr) noexcept {
-  return reinterpret_cast<FnPtrT>(reinterpret_cast<intptr_t>(ptr));
-}
-
-DlsymFn *GetRealDlsym() noexcept {
-  return func_cast<DlsymFn *>(
-      __libc_dlsym(dlopen("libdl.so.2", RTLD_LAZY), "dlsym"));
-}
-}
-
+// using DlsymFn = void *(void *, const char *);
+//
+// extern "C" {
+//// For interposing dlsym(). See elf/dl-libc.c for the internal dlsym interface
+//// function
+// void *__libc_dlsym(void *map, const char *name);
+//}
+//
+// namespace turbo_hooker {
+// template <typename FnPtrT> constexpr auto func_cast(void *ptr) noexcept {
+//  return reinterpret_cast<FnPtrT>(reinterpret_cast<intptr_t>(ptr));
+//}
+//
+// DlsymFn *GetRealDlsym() noexcept {
+//  return func_cast<DlsymFn *>(
+//      __libc_dlsym(dlopen("libdl.so.2", RTLD_LAZY), "dlsym"));
+//}
+//}
 
 namespace turbo_hooker {
 namespace service {
 
-template <typename T>
-static void check(T result, char const *const func, const char *const file,
-                  int const line) {
-  if (result) {
-    fprintf(stderr, "CUDA error at %s:%d code=%d(%s) \"%s\" \n", file, line,
-            static_cast<unsigned int>(result), cudaGetErrorName(result), func);
-    exit(EXIT_FAILURE);
-  }
-}
+// CudaAllocServer::CudaAllocServer() {
+//  const std::string cuda_lib = "libcuda.so";
+//  auto handle = dlopen(cuda_lib.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+//  auto real_dlsym = GetRealDlsym();
+//  cuda_malloc_ =
+//     reinterpret_cast<CudaMallocFn *>(real_dlsym(handle, "cuMemAlloc_v2"));
+//  cuda_free_ =
+//      reinterpret_cast<CudaFreeFn *>(real_dlsym(handle, "cuMemFree_v2"));
+//}
 
-#define checkCudaErrors(val) check((val), #val, __FILE__, __LINE__)
-
-
-
-CudaAllocServer::CudaAllocServer() {
-  const std::string cuda_lib = "libcuda.so";
-  auto handle = dlopen(cuda_lib.c_str(), RTLD_LAZY | RTLD_GLOBAL);
-  auto real_dlsym = GetRealDlsym();
-  cuda_malloc_ =
-     reinterpret_cast<CudaMallocFn *>(real_dlsym(handle, "cuMemAlloc_v2"));
-  cuda_free_ = 
-      reinterpret_cast<CudaFreeFn *>(real_dlsym(handle, "cuMemFree_v2"));
-}
+CudaAllocServer::CudaAllocServer() = default;
 
 grpc::Status CudaAllocServer::Malloc(grpc::ServerContext *context,
                                      const MallocRequest *request,
-                                     ::MallocReply *response) {
+                                     MallocReply *response) {
   LOG_S(INFO) << "[CudaAllocServer::Malloc] << invoke with size = "
               << request->size();
-  uintptr_t ptr;
-  cuda_malloc_(&ptr, request->size());
+  void *ptr;
   cudaIpcMemHandle_t mem_handle;
-  float* pp;
-  size_t dd = request->size();
-  checkCudaErrors(cudaMalloc(&pp, dd));
-  checkCudaErrors(
-      cudaIpcGetMemHandle(&mem_handle, pp));
+  size_t s = request->size();
+  assert(cudaMalloc(&ptr, s) == 0);
+  assert(cudaIpcGetMemHandle(&mem_handle, ptr) == 0);
   response->set_mem_handle(&mem_handle, sizeof(mem_handle));
+  auto *alloc = response->mutable_allocation();
+  alloc->set_ptr(reinterpret_cast<uintptr_t>(ptr));
   LOG_S(INFO) << "[CudaAllocServer::Malloc] << return with new malloced ptr = "
-              << pp;
+              << ptr;
   return grpc::Status::OK;
 }
 
@@ -93,8 +77,7 @@ grpc::Status CudaAllocServer::Free(grpc::ServerContext *context,
                                    FreeReply *response) {
   uintptr_t to_free = static_cast<intptr_t>(request->ptr_to_free());
   LOG_S(INFO) << "[CudaAllocServer::Free] << invoke with ptr = " << to_free;
-  //cuda_free_(to_free);
-  cudaFree(reinterpret_cast<void*>(to_free));
+  assert(cudaFree(reinterpret_cast<void *>(to_free)) == 0);
   return grpc::Status::OK;
 }
 

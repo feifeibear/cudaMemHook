@@ -23,14 +23,14 @@ namespace service {
 
 class CudaAllocClient {
 public:
-  static CudaAllocClient CreateClient();
-
+  CudaAllocClient(const std::string &server_address);
   uintptr_t Malloc(size_t size);
 
   void Free(uintptr_t ptr);
 
 private:
   std::unique_ptr<CudaAllocator::Stub> stub_;
+  std::unordered_map<uintptr_t, Allocation> allocations_;
 };
 
 extern "C" {
