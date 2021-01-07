@@ -1,3 +1,4 @@
+
 find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 
 add_library(cuda_alloc_client SHARED cuda_alloc_client.cpp messages.cpp)

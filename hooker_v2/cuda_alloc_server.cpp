@@ -46,12 +46,11 @@ struct CudaAllocServer::Impl {
   explicit Impl(uint16_t port) : server_(port) {
     server_.bind("Malloc", [&](const MallocRequest &req) -> MallocReply {
       auto allocation = allocator_.Malloc(req.size_);
-      MallocReply reply;
-      reply.ipc_handle_bytes_.resize(sizeof(allocation.ipc_handle_));
-      memcpy(reply.ipc_handle_bytes_.data(), &allocation.ipc_handle_,
-             sizeof(allocation.ipc_handle_));
-      reply.original_ptr_ = allocation.original_ptr_;
-      reply.offset_ = allocation.offset_;
+      std::ostringstream oss;
+      oss.write(reinterpret_cast<char *>(&allocation.ipc_handle_),
+                sizeof(allocation.ipc_handle_));
+      MallocReply reply{allocation.original_ptr_, oss.str(),
+                        allocation.offset_};
       LOG_S(INFO) << "[Server::Malloc] Return with ptr=" << reply.original_ptr_
                   << " offset=" << reply.offset_;
       return reply;
