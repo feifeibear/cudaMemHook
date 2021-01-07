@@ -7,3 +7,6 @@
 [submodule "3rd/rpclib"]
   path = 3rd/rpclib
   url = https://github.com/rpclib/rpclib.git
+[submodule "3rd/Catch2"]
+  path = 3rd/Catch2
+  url = https://github.com/catchorg/Catch2.git
