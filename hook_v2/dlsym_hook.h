@@ -11,21 +11,12 @@
 // permissions and limitations under the License.
 // See the AUTHORS file for names of contributors.
 
-#include "dlsym_hooker.h"
-#include "cuda_alloc_client.h"
-#include "real_dlsym.h"
+#pragma once
 
-extern "C" {
+#include <dlfcn.h>
+
 #ifdef __APPLE__
-void *dlsym(void *handle, const char *symbol) __DYLDDL_DRIVERKIT_UNAVAILABLE {
+void *dlsym(void *handle, const char *symbol) __DYLDDL_DRIVERKIT_UNAVAILABLE;
 #else
-void *dlsym(void *handle, const char *symbol) noexcept {
+void *dlsym(void *handle, const char *symbol) noexcept;
 #endif
-  static auto *real_dlsym = turbo_hooker::GetRealDlsym();
-  void *func = turbo_hook::service::Dlsym(handle, symbol);
-  if (func != nullptr) {
-    return func;
-  }
-  return real_dlsym(handle, symbol);
-}
-}
