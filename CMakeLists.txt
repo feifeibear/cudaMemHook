@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 project(turbo_hooker LANGUAGES CXX C CUDA)
-
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+
 add_subdirectory(3rd)
 add_subdirectory(core)
-add_subdirectory(hooker)
+#add_subdirectory(hooker)
+add_subdirectory(hooker_v2)
 add_subdirectory(ipc)
