@@ -11,24 +11,4 @@
 // permissions and limitations under the License.
 // See the AUTHORS file for names of contributors.
 
-#pragma once
-
-#include <memory>
-
-namespace turbo_hook {
-namespace service {
-
-class Allocator;
-
-class CudaAllocServer {
-public:
-  explicit CudaAllocServer(uint16_t port);
-  void Run();
-
-private:
-  struct Impl;
-  std::unique_ptr<Impl> m_;
-};
-
-} // namespace service
-} // namespace turbo_hook
+#include "messages.h"

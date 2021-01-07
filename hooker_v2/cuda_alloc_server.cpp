@@ -12,68 +12,75 @@
 // See the AUTHORS file for names of contributors.
 
 #include "cuda_alloc_server.h"
-#include "alloc.pb.h"
 #include "loguru.hpp"
+#include "messages.h"
+#include "rpc/server.h"
 #include <cstdint>
 #include <cuda_runtime.h>
-#include <dlfcn.h>
-#include <grpcpp/ext/proto_server_reflection_plugin.h>
-#include <grpcpp/health_check_service_interface.h>
 
-namespace turbo_hooker {
+namespace turbo_hook {
 namespace service {
 
-CudaAllocServer::CudaAllocServer() = default;
+struct Allocation {
+  cudaIpcMemHandle_t ipc_handle_;
+  uintptr_t original_ptr_;
+  size_t offset_;
+};
 
-grpc::Status CudaAllocServer::Malloc(grpc::ServerContext *context,
-                                     const MallocRequest *request,
-                                     MallocReply *response) {
-  LOG_S(INFO) << "[CudaAllocServer::Malloc] << invoke with size = "
-              << request->size();
-  void *ptr;
-  cudaIpcMemHandle_t mem_handle;
-  size_t s = request->size();
-  assert(cudaMalloc(&ptr, s) == 0);
-  assert(cudaIpcGetMemHandle(&mem_handle, ptr) == 0);
-  response->set_mem_handle(&mem_handle, sizeof(mem_handle));
-  auto *alloc = response->mutable_allocation();
-  alloc->set_ptr(reinterpret_cast<uintptr_t>(ptr));
-  LOG_S(INFO) << "[CudaAllocServer::Malloc] << return with new malloced ptr = "
-              << ptr;
-  return grpc::Status::OK;
-}
+class Allocator {
+public:
+  Allocation Malloc(size_t size) {
+    void *ptr;
+    assert(cudaMalloc(&ptr, size) == 0);
+    cudaIpcMemHandle_t handle;
+    assert(cudaIpcGetMemHandle(&handle, ptr) == 0);
+    return Allocation{handle, reinterpret_cast<uintptr_t>(ptr), 0};
+  }
 
-grpc::Status CudaAllocServer::Free(grpc::ServerContext *context,
-                                   const FreeRequest *request,
-                                   FreeReply *response) {
-  uintptr_t to_free = static_cast<intptr_t>(request->ptr_to_free());
-  LOG_S(INFO) << "[CudaAllocServer::Free] << invoke with ptr = " << to_free;
-  assert(cudaFree(reinterpret_cast<void *>(to_free)) == 0);
-  return grpc::Status::OK;
-}
+  void Free(uintptr_t original_ptr, size_t offset) {
+    assert(cudaFree(reinterpret_cast<void *>(original_ptr)) == 0);
+  }
+};
 
-void RunServer() {
-  std::string server_address("0.0.0.0:50051");
-  CudaAllocServer service;
+struct CudaAllocServer::Impl {
+  explicit Impl(uint16_t port) : server_(port) {
+    server_.bind("Malloc", [&](const MallocRequest &req) -> MallocReply {
+      auto allocation = allocator_.Malloc(req.size_);
+      MallocReply reply;
+      reply.ipc_handle_bytes_.resize(sizeof(allocation.ipc_handle_));
+      memcpy(reply.ipc_handle_bytes_.data(), &allocation.ipc_handle_,
+             sizeof(allocation.ipc_handle_));
+      reply.original_ptr_ = allocation.original_ptr_;
+      reply.offset_ = allocation.offset_;
+      LOG_S(INFO) << "[Server::Malloc] Return with ptr=" << reply.original_ptr_
+                  << " offset=" << reply.offset_;
+      return reply;
+    });
 
-  grpc::EnableDefaultHealthCheckService(true);
-  grpc::reflection::InitProtoReflectionServerBuilderPlugin();
-  grpc::ServerBuilder builder;
+    server_.bind("Free", [&](const FreeRequest &req) -> void {
+      LOG_S(INFO) << "[Server::Free] Invoked with ptr=" << req.original_ptr_
+                  << " offset=" << req.offset_;
+      allocator_.Free(req.original_ptr_, req.offset_);
+    });
+  }
 
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  builder.RegisterService(&service);
-  std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-  std::cout << "CudaAllocServer listening on " << server_address << std::endl;
+  void Run() { server_.run(); }
 
-  server->Wait();
-}
+private:
+  rpc::server server_;
+  Allocator allocator_;
+};
+
+CudaAllocServer::CudaAllocServer(uint16_t port) : m_(new Impl(port)) {}
+
+void CudaAllocServer::Run() { m_->Run(); }
 
 } // namespace service
-} // namespace turbo_hooker
+} // namespace turbo_hook
 
 int main(int argc, char **argv) {
-
-  turbo_hooker::service::RunServer();
-
+  turbo_hook::service::CudaAllocServer server(50051);
+  LOG_S(INFO) << "Server start.";
+  server.Run();
   return 0;
 }

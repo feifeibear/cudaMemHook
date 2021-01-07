@@ -13,26 +13,20 @@
 
 #pragma once
 
-#include "alloc.grpc.pb.h"
-#include "real_dlsym.h"
 #include <memory>
-#include <unordered_map>
-#include <mutex>
 
-namespace turbo_hooker {
+namespace turbo_hook {
 namespace service {
 
 class CudaAllocClient {
 public:
-  CudaAllocClient(const std::string &server_address);
-  uintptr_t Malloc(size_t size);
-
-  void Free(uintptr_t ptr);
+  CudaAllocClient(const std::string &addr, uint16_t port);
+  int Malloc(uintptr_t *ptr, size_t size);
+  int Free(uintptr_t ptr);
 
 private:
-  std::unique_ptr<CudaAllocator::Stub> stub_;
-  std::unordered_map<uintptr_t, Allocation> allocations_;
-  std::mutex mtx_;
+  struct Impl;
+  std::unique_ptr<Impl> m_;
 };
 
 extern "C" {
@@ -42,4 +36,4 @@ extern void *Dlsym(void *handle, const char *symbol);
 }
 
 } // namespace service
-} // namespace turbo_hooker
+} // namespace turbo_hook

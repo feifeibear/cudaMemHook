@@ -1,6 +1,9 @@
 [submodule "3rd/abseil-cpp"]
-	path = 3rd/abseil-cpp
-	url = https://github.com/abseil/abseil-cpp.git
+  path = 3rd/abseil-cpp
+  url = https://github.com/abseil/abseil-cpp.git
 [submodule "3rd/loguru"]
-	path = 3rd/loguru
-	url = https://github.com/emilk/loguru.git
+  path = 3rd/loguru
+  url = https://github.com/emilk/loguru.git
+[submodule "3rd/rpclib"]
+  path = 3rd/rpclib
+  url = https://github.com/rpclib/rpclib.git

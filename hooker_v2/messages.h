@@ -11,22 +11,28 @@
 // permissions and limitations under the License.
 // See the AUTHORS file for names of contributors.
 
-syntax = "proto3";
+#include "rpc/msgpack.hpp"
 
-service CudaAllocator {
-  rpc Malloc(MallocRequest) returns (MallocReply) {}
-  rpc Free(FreeRequest) returns (FreeReply) {}
-}
+namespace turbo_hook {
+namespace service {
 
-message MallocRequest { uint64 size = 1; }
+struct MallocRequest {
+  size_t size_;
+  MSGPACK_DEFINE_ARRAY(size_);
+};
 
-message Allocation { uint64 ptr = 1; }
+struct MallocReply {
+  uintptr_t original_ptr_;
+  std::string ipc_handle_bytes_;
+  size_t offset_;
+  MSGPACK_DEFINE_ARRAY(original_ptr_, ipc_handle_bytes_, offset_);
+};
 
-message MallocReply {
-  bytes mem_handle = 1;
-  Allocation allocation = 2;
-}
+struct FreeRequest {
+  uintptr_t original_ptr_;
+  size_t offset_;
+  MSGPACK_DEFINE_ARRAY(original_ptr_, offset_);
+};
 
-message FreeRequest { uint64 ptr_to_free = 1; }
-
-message FreeReply {}
+} // namespace service
+} // namespace turbo_hook

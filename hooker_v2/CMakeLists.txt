@@ -1,40 +1,12 @@
-find_package(Threads REQUIRED)
-set(protobuf_MODULE_COMPATIBLE TRUE)
-find_package(Protobuf CONFIG REQUIRED)
-find_package(gRPC CONFIG REQUIRED)
-
 find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-
-get_filename_component(alloc_proto "./alloc.proto" ABSOLUTE)
-get_filename_component(alloc_proto_path "${alloc_proto}" PATH)
-set(alloc_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/alloc.pb.cc")
-set(alloc_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/alloc.pb.h")
-set(alloc_grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/alloc.grpc.pb.cc")
-set(alloc_grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/alloc.grpc.pb.h")
-set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
-set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
-add_custom_command(
-        OUTPUT "${alloc_proto_srcs}" "${alloc_proto_hdrs}" "${alloc_grpc_srcs}" "${alloc_grpc_hdrs}"
-        COMMAND ${_PROTOBUF_PROTOC}
-        ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
-        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
-        -I "${alloc_proto_path}"
-  --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
-        "${alloc_proto}"
-        DEPENDS "${alloc_proto}")
-
-add_library(cuda_alloc_client SHARED cuda_alloc_client.cpp ${alloc_proto_srcs} ${alloc_grpc_srcs})
+add_library(cuda_alloc_client SHARED cuda_alloc_client.cpp messages.cpp)
 target_include_directories(cuda_alloc_client PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-target_link_libraries(cuda_alloc_client PUBLIC loguru gRPC::grpc++_reflection gRPC::grpc++ protobuf::libprotobuf ${CUDART_LIBRARY})
+target_link_libraries(cuda_alloc_client PUBLIC loguru rpc ${CUDART_LIBRARY})
 
 add_library(cuda_hooker_v2 SHARED dlsym_hooker.cpp real_dlsym.cpp)
-
 target_link_libraries(cuda_hooker_v2 PUBLIC cuda_alloc_client ${CMAKE_DL_LIBS})
 
-add_executable(server_main cuda_alloc_server.cpp ${alloc_proto_srcs} ${alloc_grpc_srcs})
-
+add_executable(server_main cuda_alloc_server.cpp messages.cpp)
 target_include_directories(server_main PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-
-target_link_libraries(server_main PUBLIC loguru gRPC::grpc++_reflection gRPC::grpc++ protobuf::libprotobuf ${CUDART_LIBRARY})
+target_link_libraries(server_main PUBLIC loguru rpc ${CUDART_LIBRARY})
