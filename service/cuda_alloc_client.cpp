@@ -45,12 +45,16 @@ struct CudaAllocClient::Impl {
 
   int Free(uintptr_t ptr) {
     LOG_S(INFO) << "[Client::Malloc] invoked with ptr=" << ptr;
+    if (ptr == 0) {
+      return 0;
+    }
     std::lock_guard<std::mutex> lck(mtx_);
     const FreeRequest &req = free_req_.at(ptr);
     void *ipc_mem = reinterpret_cast<void *>(ptr - req.offset_);
     assert(cudaIpcCloseMemHandle(ipc_mem) == 0);
     client_.call("Free", req);
     free_req_.erase(ptr);
+    return 0;
   }
 
 private:
