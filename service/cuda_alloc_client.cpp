@@ -12,10 +12,10 @@
 // See the AUTHORS file for names of contributors.
 
 #include "cuda_alloc_client.h"
-#include "loguru.hpp"
 #include "messages.h"
 #include "rpc/client.h"
 #include <cuda_runtime.h>
+#include <iostream>
 #include <mutex>
 #include <unordered_map>
 
@@ -39,12 +39,12 @@ struct CudaAllocClient::Impl {
     *ptr = reinterpret_cast<uintptr_t>(ipc_mem) + reply.offset_;
     std::lock_guard<std::mutex> lck(mtx_);
     free_req_[*ptr] = FreeRequest{reply.original_ptr_, reply.offset_};
-    LOG_S(INFO) << "[Client::Malloc] return with ptr=" << *ptr;
+    std::cerr << "[Client::Malloc] return with ptr=" << *ptr << std::endl;
     return 0;
   }
 
   int Free(uintptr_t ptr) {
-    LOG_S(INFO) << "[Client::Malloc] invoked with ptr=" << ptr;
+    std::cerr << "[Client::Malloc] invoked with ptr=" << ptr << std::endl;
     if (ptr == 0) {
       return 0;
     }
