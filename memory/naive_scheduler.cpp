@@ -64,7 +64,7 @@ void NaiveScheduler::Free(size_t offset) {
   if (m_->block_list_.end() != to_delete_it) {
     m_->block_list_.erase(to_delete_it);
   } else {
-    std::cerr << "Free an invalid memory offset " << offset < < < < std::endl;
+    std::cerr << "Free an invalid memory offset " << offset << std::endl;
   }
 }
 
