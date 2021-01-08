@@ -33,7 +33,6 @@ struct NaiveScheduler::Impl {
 NaiveScheduler::NaiveScheduler(size_t capacity) : m_(new Impl(capacity)) {}
 
 size_t NaiveScheduler::Alloc(size_t size) {
-  bool is_first = true;
   size_t prev_end_offset = 0;
   for (auto it = m_->block_list_.begin(); it != m_->block_list_.end(); it++) {
     size_t start_offset = it->start_offset;
