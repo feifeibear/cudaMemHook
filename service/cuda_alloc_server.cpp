@@ -13,6 +13,7 @@
 
 #include "cuda_alloc_server.h"
 #include "loguru.hpp"
+#include "memory/naive_scheduler.hpp"
 #include "messages.h"
 #include "rpc/server.h"
 #include <cstdint>
@@ -43,7 +44,12 @@ public:
 };
 
 struct CudaAllocServer::Impl {
-  explicit Impl(uint16_t port) : server_(port) {
+  explicit Impl(uint16_t port, size_t capcaity = 1024 * 1024 * 1024)
+      : server_(port),
+        memory_scheduler_(new turbo_hook::memory::NaiveScheduler(capcaity)) {
+
+    memory_pool_ = allocator_.Malloc(capcaity);
+
     server_.bind("Malloc", [&](const MallocRequest &req) -> MallocReply {
       auto allocation = allocator_.Malloc(req.size_);
       std::ostringstream oss;
@@ -61,6 +67,18 @@ struct CudaAllocServer::Impl {
                   << " offset=" << req.offset_;
       allocator_.Free(req.original_ptr_, req.offset_);
     });
+
+    // 只申请一段地址偏移
+    server_.bind("Register", [&](const RegistRequest &req) -> RegistReply {
+      auto pid = req.pid_;
+      std::ostringstream oss;
+      oss.write(reinterpret_cast<char *>(&memory_pool_.ipc_handle_),
+                sizeof(memory_pool_.ipc_handle_));
+      RegistReply reply{memory_pool_.original_ptr_, oss.str()};
+      LOG_S(INFO) << "[Server::Register] regist pid  " << pid
+                  << " original addr=" << memory_pool_.original_ptr_;
+      return reply;
+    });
   }
 
   void Run() { server_.run(); }
@@ -68,6 +86,8 @@ struct CudaAllocServer::Impl {
 private:
   rpc::server server_;
   Allocator allocator_;
+  std::unique_ptr<turbo_hook::memory::IScheduler> memory_scheduler_;
+  Allocation memory_pool_;
 };
 
 CudaAllocServer::CudaAllocServer(uint16_t port) : m_(new Impl(port)) {}

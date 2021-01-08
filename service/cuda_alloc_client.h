@@ -32,6 +32,7 @@ private:
 extern "C" {
 extern int Malloc(uintptr_t *ptr, size_t size);
 extern int Free(uintptr_t ptr);
+extern int Regist(pid_t pid);
 extern void *Dlsym(void *handle, const char *symbol);
 }
 

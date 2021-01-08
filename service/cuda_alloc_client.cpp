@@ -51,12 +51,26 @@ struct CudaAllocClient::Impl {
     assert(cudaIpcCloseMemHandle(ipc_mem) == 0);
     client_.call("Free", req);
     free_req_.erase(ptr);
+    return 0;
+  }
+
+  // Register the client to the server. Get the CUDA IPC memory handle.
+  int Register(pid_t pid) {
+    auto reply = client_.call("Register", RegistRequest{pid}).as<RegistReply>();
+    cudaIpcMemHandle_t handle;
+    memcpy(&handle, reply.ipc_handle_bytes_.data(), sizeof(handle));
+    assert(cudaIpcOpenMemHandle((void **)&ipc_memory_, handle,
+                                cudaIpcMemLazyEnablePeerAccess) == 0);
+    LOG_S(INFO) << "[Client::Register] Success Register Pid " << pid;
+    return 0;
   }
 
 private:
   rpc::client client_;
   std::unordered_map<uintptr_t, FreeRequest> free_req_;
   std::mutex mtx_;
+
+  uintptr_t ipc_memory_;
 };
 
 CudaAllocClient::CudaAllocClient(const std::string &addr, uint16_t port)

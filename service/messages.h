@@ -12,9 +12,20 @@
 // See the AUTHORS file for names of contributors.
 
 #include "rpc/msgpack.hpp"
-
+#include <sys/types.h>
 namespace turbo_hook {
 namespace service {
+
+struct RegistRequest {
+  pid_t pid_;
+  MSGPACK_DEFINE_ARRAY(pid_);
+};
+
+struct RegistReply {
+  uintptr_t original_ptr_;
+  std::string ipc_handle_bytes_;
+  MSGPACK_DEFINE_ARRAY(original_ptr_, ipc_handle_bytes_);
+};
 
 struct MallocRequest {
   size_t size_;
