@@ -24,6 +24,7 @@ public:
   int Malloc(uintptr_t *ptr, size_t size);
   int Free(uintptr_t ptr);
   int Register(pid_t pid);
+  uintptr_t uMalloc(pid_t pid, size_t size);
 
 private:
   struct Impl;
@@ -35,6 +36,7 @@ extern int Malloc(uintptr_t *ptr, size_t size);
 extern int Free(uintptr_t ptr);
 extern int Register(pid_t pid);
 extern void *Dlsym(void *handle, const char *symbol);
+extern uintptr_t uMalloc(pid_t pid, size_t size);
 }
 
 } // namespace service

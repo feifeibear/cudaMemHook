@@ -68,6 +68,11 @@ struct CudaAllocClient::Impl {
     return 0;
   }
 
+  uintptr_t uMalloc(pid_t pid, size_t size) {
+    // TODO(jiaruifang) send the request to the server to find a memory gap
+    return ipc_memory_;
+  }
+
 private:
   rpc::client client_;
   std::unordered_map<uintptr_t, FreeRequest> free_req_;
@@ -87,6 +92,10 @@ int CudaAllocClient::Free(uintptr_t ptr) { return m_->Free(ptr); }
 
 int CudaAllocClient::Register(pid_t pid) { return m_->Register(pid); }
 
+uintptr_t CudaAllocClient::uMalloc(pid_t pid, size_t size) {
+  return m_->uMalloc(pid, size);
+}
+
 extern "C" {
 
 int Malloc(uintptr_t *ptr, size_t size) { return gClient.Malloc(ptr, size); }
@@ -102,6 +111,8 @@ void *Dlsym(void *handle, const char *symbol) {
   return nullptr;
 }
 int Register(pid_t pid) { return gClient.Register(pid); }
+
+uintptr_t uMalloc(pid_t pid, size_t size) { return gClient.uMalloc(pid, size); }
 }
 
 } // namespace service

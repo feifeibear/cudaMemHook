@@ -68,7 +68,7 @@ struct CudaAllocServer::Impl {
       allocator_.Free(req.original_ptr_, req.offset_);
     });
 
-    // 只申请一段地址偏移
+    // client向server注册，获得gpu内存分配句柄
     server_.bind("Register", [&](const RegistRequest &req) -> RegistReply {
       auto pid = req.pid_;
       std::ostringstream oss;

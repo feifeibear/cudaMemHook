@@ -12,8 +12,28 @@
 // See the AUTHORS file for names of contributors.
 
 #include "cuda_alloc_client.h"
+#include "cuda_runtime.h"
+#include <iostream>
+#include <memory>
 
 int main(int argc, char **argv) {
-  turbo_hook::service::Register(123);
+  pid_t pid = 123;
+  turbo_hook::service::Register(pid);
+  uintptr_t dmem = turbo_hook::service::uMalloc(pid, 100);
+
+  size_t len = 5;
+  std::unique_ptr<int[]> hmem = std::make_unique<int[]>(len);
+  for (int i = 0; i < len; ++i) {
+    hmem[i] = i;
+  }
+  cudaMemcpy((void *)dmem, (void *)hmem.get(), len * sizeof(int),
+             cudaMemcpyHostToDevice);
+
+  std::unique_ptr<int[]> hmem_ref = std::make_unique<int[]>(len);
+  cudaMemcpy((void *)hmem_ref.get(), (void *)dmem, len * sizeof(int),
+             cudaMemcpyDeviceToHost);
+  for (int i = 0; i < len; ++i) {
+    std::cerr << hmem[i] << std::endl;
+  }
   return 0;
 }
