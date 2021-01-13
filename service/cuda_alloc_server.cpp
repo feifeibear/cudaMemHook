@@ -18,6 +18,7 @@
 #include "rpc/server.h"
 #include <cstdint>
 #include <cuda_runtime.h>
+#include <mutex>
 
 namespace turbo_hook {
 namespace service {
@@ -70,6 +71,7 @@ struct CudaAllocServer::Impl {
 
     // client向server注册，获得gpu内存分配句柄
     server_.bind("Register", [&](const RegistRequest &req) -> RegistReply {
+      std::lock_guard<std::mutex> lck(mtx_);
       auto pid = req.pid_;
       std::ostringstream oss;
       oss.write(reinterpret_cast<char *>(&memory_pool_.ipc_handle_),
@@ -82,6 +84,7 @@ struct CudaAllocServer::Impl {
 
     // 轻量级malloc接口
     server_.bind("uMalloc", [&](const uMallocRequest &req) -> uMallocReply {
+      std::lock_guard<std::mutex> lck(mtx_);
       LOG_S(INFO) << "[Server::uMalloc] starting...";
 
       auto pid = req.pid_;
@@ -98,6 +101,7 @@ struct CudaAllocServer::Impl {
     // TODO(jiaruifang)
     // pid信息可以用来限制单个线程的显存配额，进行模型相关优化。
     server_.bind("uFree", [&](const uFreeRequest &req) -> void {
+      std::lock_guard<std::mutex> lck(mtx_);
       LOG_S(INFO) << "[Server::uFree] starting...";
 
       auto pid = req.pid_;
@@ -113,6 +117,7 @@ struct CudaAllocServer::Impl {
   void Run() { server_.run(); }
 
 private:
+  std::mutex mtx_;
   rpc::server server_;
   Allocator allocator_;
   std::unique_ptr<turbo_hook::memory::IScheduler> memory_scheduler_;
