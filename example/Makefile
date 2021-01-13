@@ -3,4 +3,4 @@ all:
 clean:
 	rm test
 run: test
-	env LD_PRELOAD=../build/./hooker/libcuda_hooker.so ./test
+	env LD_PRELOAD=../build/hook_v2/libcuda_hook_v2.so ./test
