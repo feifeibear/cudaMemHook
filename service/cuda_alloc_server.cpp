@@ -92,6 +92,18 @@ struct CudaAllocServer::Impl {
                   << " offset=" << offset;
       return reply;
     });
+
+    server_.bind("uFree", [&](const uFreeRequest &req) -> void {
+      LOG_S(INFO) << "[Server::uFree] starting...";
+
+      auto pid = req.pid_;
+      auto offset = req.offset_;
+      memory_scheduler_->Free(offset);
+
+      LOG_S(INFO) << "[Server::uFree] regist pid  " << pid
+                  << " offset=" << offset;
+      return;
+    });
   }
 
   void Run() { server_.run(); }

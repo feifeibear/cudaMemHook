@@ -74,7 +74,9 @@ struct CudaAllocClient::Impl {
         client_.call("uMalloc", uMallocRequest{pid, size}).as<uMallocReply>();
     auto offset = reply.offset_;
     if (offset != -1U) {
-      return ipc_memory_ + offset;
+      uintptr_t ret = ipc_memory_ + offset;
+      allocation_records_[ret] = offset;
+      return ret;
     } else {
       return -1U;
     }
@@ -82,12 +84,21 @@ struct CudaAllocClient::Impl {
 
   void uFree(pid_t pid, uintptr_t addr) {
     // TODO(jiaruifang) send the request to the server to find a memory gap
+    auto it = allocation_records_.find(addr);
+    if (it != allocation_records_.end()) {
+      client_.call("uFree", uMallocRequest{pid, it->second});
+      allocation_records_.erase(it);
+    } else {
+      std::cerr << "uFree an invalid memory addr" << std::endl;
+    }
   }
 
 private:
   rpc::client client_;
   std::unordered_map<uintptr_t, FreeRequest> free_req_;
   std::mutex mtx_;
+
+  std::unordered_map<uintptr_t, size_t> allocation_records_;
 
   uintptr_t ipc_memory_;
 };
@@ -105,6 +116,10 @@ int CudaAllocClient::Register(pid_t pid) { return m_->Register(pid); }
 
 uintptr_t CudaAllocClient::uMalloc(pid_t pid, size_t size) {
   return m_->uMalloc(pid, size);
+}
+
+void CudaAllocClient::uFree(pid_t pid, uintptr_t addr) {
+  return m_->uFree(pid, addr);
 }
 
 extern "C" {
@@ -125,9 +140,7 @@ int Register(pid_t pid) { return gClient.Register(pid); }
 
 uintptr_t uMalloc(pid_t pid, size_t size) { return gClient.uMalloc(pid, size); }
 
-void uFree(pid_t pid, uintptr_t addr){
-    // TODO(jiaruifang)
-};
+void uFree(pid_t pid, uintptr_t addr) { return gClient.uFree(pid, addr); };
 }
 
 } // namespace service

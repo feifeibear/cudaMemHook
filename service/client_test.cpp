@@ -35,5 +35,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < len; ++i) {
     std::cerr << hmem[i] << std::endl;
   }
+
+  turbo_hook::service::uFree(pid, dmem);
   return 0;
 }
