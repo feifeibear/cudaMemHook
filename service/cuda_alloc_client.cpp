@@ -70,7 +70,18 @@ struct CudaAllocClient::Impl {
 
   uintptr_t uMalloc(pid_t pid, size_t size) {
     // TODO(jiaruifang) send the request to the server to find a memory gap
-    return ipc_memory_;
+    auto reply =
+        client_.call("uMalloc", uMallocRequest{pid, size}).as<uMallocReply>();
+    auto offset = reply.offset_;
+    if (offset != -1U) {
+      return ipc_memory_ + offset;
+    } else {
+      return -1U;
+    }
+  }
+
+  void uFree(pid_t pid, uintptr_t addr) {
+    // TODO(jiaruifang) send the request to the server to find a memory gap
   }
 
 private:
@@ -113,6 +124,10 @@ void *Dlsym(void *handle, const char *symbol) {
 int Register(pid_t pid) { return gClient.Register(pid); }
 
 uintptr_t uMalloc(pid_t pid, size_t size) { return gClient.uMalloc(pid, size); }
+
+void uFree(pid_t pid, uintptr_t addr){
+    // TODO(jiaruifang)
+};
 }
 
 } // namespace service

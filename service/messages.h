@@ -16,6 +16,17 @@
 namespace turbo_hook {
 namespace service {
 
+struct uMallocRequest {
+  pid_t pid_;
+  size_t size_;
+  MSGPACK_DEFINE_ARRAY(pid_, size_);
+};
+
+struct uMallocReply {
+  size_t offset_;
+  MSGPACK_DEFINE_ARRAY(offset_);
+};
+
 struct RegistRequest {
   pid_t pid_;
   MSGPACK_DEFINE_ARRAY(pid_);

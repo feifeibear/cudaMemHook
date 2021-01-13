@@ -79,6 +79,19 @@ struct CudaAllocServer::Impl {
                   << " original addr=" << memory_pool_.original_ptr_;
       return reply;
     });
+
+    server_.bind("uMalloc", [&](const uMallocRequest &req) -> uMallocReply {
+      LOG_S(INFO) << "[Server::uMalloc] starting...";
+
+      auto pid = req.pid_;
+      auto size = req.size_;
+      auto offset = memory_scheduler_->Alloc(size);
+
+      uMallocReply reply{offset};
+      LOG_S(INFO) << "[Server::uMalloc] regist pid  " << pid
+                  << " offset=" << offset;
+      return reply;
+    });
   }
 
   void Run() { server_.run(); }

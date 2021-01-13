@@ -37,6 +37,7 @@ extern int Free(uintptr_t ptr);
 extern int Register(pid_t pid);
 extern void *Dlsym(void *handle, const char *symbol);
 extern uintptr_t uMalloc(pid_t pid, size_t size);
+extern void uFree(pid_t pid, uintptr_t addr);
 }
 
 } // namespace service
