@@ -7,3 +7,7 @@ target_link_libraries(cuda_alloc_client PUBLIC loguru rpc ${CUDART_LIBRARY} memo
 add_executable(server_main cuda_alloc_server.cpp messages.cpp)
 target_include_directories(server_main PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_link_libraries(server_main PUBLIC loguru rpc ${CUDART_LIBRARY} memory)
+
+
+add_executable(client_test client_test.cpp)
+target_link_libraries(client_test PUBLIC ${CUDART_LIBRARY} cuda_alloc_client)
