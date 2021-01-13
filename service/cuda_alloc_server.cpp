@@ -80,6 +80,7 @@ struct CudaAllocServer::Impl {
       return reply;
     });
 
+    // 轻量级malloc接口
     server_.bind("uMalloc", [&](const uMallocRequest &req) -> uMallocReply {
       LOG_S(INFO) << "[Server::uMalloc] starting...";
 
@@ -88,11 +89,14 @@ struct CudaAllocServer::Impl {
       auto offset = memory_scheduler_->Alloc(size);
 
       uMallocReply reply{offset};
-      LOG_S(INFO) << "[Server::uMalloc] regist pid  " << pid
-                  << " offset=" << offset;
+      LOG_S(INFO) << "[Server::uMalloc] malloc pid  " << pid
+                  << "'s memory of size " << size << " at offset" << offset;
       return reply;
     });
 
+    //轻量级free接口
+    // TODO(jiaruifang)
+    // pid信息可以用来限制单个线程的显存配额，进行模型相关优化。
     server_.bind("uFree", [&](const uFreeRequest &req) -> void {
       LOG_S(INFO) << "[Server::uFree] starting...";
 

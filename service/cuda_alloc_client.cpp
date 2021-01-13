@@ -68,8 +68,9 @@ struct CudaAllocClient::Impl {
     return 0;
   }
 
+  // send the request to the server to find a memory gap from the global memory
+  // pool.
   uintptr_t uMalloc(pid_t pid, size_t size) {
-    // TODO(jiaruifang) send the request to the server to find a memory gap
     auto reply =
         client_.call("uMalloc", uMallocRequest{pid, size}).as<uMallocReply>();
     auto offset = reply.offset_;
@@ -82,8 +83,8 @@ struct CudaAllocClient::Impl {
     }
   }
 
+  // free the ownership of pid on addr from the global memory pool.
   void uFree(pid_t pid, uintptr_t addr) {
-    // TODO(jiaruifang) send the request to the server to find a memory gap
     auto it = allocation_records_.find(addr);
     if (it != allocation_records_.end()) {
       client_.call("uFree", uMallocRequest{pid, it->second});
