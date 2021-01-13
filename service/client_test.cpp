@@ -11,31 +11,9 @@
 // permissions and limitations under the License.
 // See the AUTHORS file for names of contributors.
 
-#pragma once
+#include "cuda_alloc_client.h"
 
-#include <memory>
-
-namespace turbo_hook {
-namespace service {
-
-class CudaAllocClient {
-public:
-  CudaAllocClient(const std::string &addr, uint16_t port);
-  int Malloc(uintptr_t *ptr, size_t size);
-  int Free(uintptr_t ptr);
-  int Register(pid_t pid);
-
-private:
-  struct Impl;
-  std::unique_ptr<Impl> m_;
-};
-
-extern "C" {
-extern int Malloc(uintptr_t *ptr, size_t size);
-extern int Free(uintptr_t ptr);
-extern int Register(pid_t pid);
-extern void *Dlsym(void *handle, const char *symbol);
+int main(int argc, char **argv) {
+  turbo_hook::service::Register(123);
+  return 0;
 }
-
-} // namespace service
-} // namespace turbo_hook

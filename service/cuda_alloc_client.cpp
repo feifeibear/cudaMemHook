@@ -12,10 +12,10 @@
 // See the AUTHORS file for names of contributors.
 
 #include "cuda_alloc_client.h"
-#include "loguru.hpp"
 #include "messages.h"
 #include "rpc/client.h"
 #include <cuda_runtime.h>
+#include <iostream>
 #include <mutex>
 #include <unordered_map>
 
@@ -39,12 +39,15 @@ struct CudaAllocClient::Impl {
     *ptr = reinterpret_cast<uintptr_t>(ipc_mem) + reply.offset_;
     std::lock_guard<std::mutex> lck(mtx_);
     free_req_[*ptr] = FreeRequest{reply.original_ptr_, reply.offset_};
-    LOG_S(INFO) << "[Client::Malloc] return with ptr=" << *ptr;
+    std::cerr << "[Client::Malloc] return with ptr=" << *ptr << std::endl;
     return 0;
   }
 
   int Free(uintptr_t ptr) {
-    LOG_S(INFO) << "[Client::Malloc] invoked with ptr=" << ptr;
+    std::cerr << "[Client::Malloc] invoked with ptr=" << ptr << std::endl;
+    if (ptr == 0) {
+      return 0;
+    }
     std::lock_guard<std::mutex> lck(mtx_);
     const FreeRequest &req = free_req_.at(ptr);
     void *ipc_mem = reinterpret_cast<void *>(ptr - req.offset_);
@@ -61,7 +64,7 @@ struct CudaAllocClient::Impl {
     memcpy(&handle, reply.ipc_handle_bytes_.data(), sizeof(handle));
     assert(cudaIpcOpenMemHandle((void **)&ipc_memory_, handle,
                                 cudaIpcMemLazyEnablePeerAccess) == 0);
-    LOG_S(INFO) << "[Client::Register] Success Register Pid " << pid;
+    std::cerr << "[Client::Register] Success Register Pid " << pid;
     return 0;
   }
 
@@ -82,6 +85,8 @@ int CudaAllocClient::Malloc(uintptr_t *ptr, size_t size) {
 
 int CudaAllocClient::Free(uintptr_t ptr) { return m_->Free(ptr); }
 
+int CudaAllocClient::Register(pid_t pid) { return m_->Register(pid); }
+
 extern "C" {
 
 int Malloc(uintptr_t *ptr, size_t size) { return gClient.Malloc(ptr, size); }
@@ -96,6 +101,7 @@ void *Dlsym(void *handle, const char *symbol) {
   }
   return nullptr;
 }
+int Register(pid_t pid) { return gClient.Register(pid); }
 }
 
 } // namespace service
