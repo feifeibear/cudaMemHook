@@ -100,8 +100,8 @@ struct CudaAllocServer::Impl {
       auto offset = req.offset_;
       memory_scheduler_->Free(offset);
 
-      LOG_S(INFO) << "[Server::uFree] regist pid  " << pid
-                  << " offset=" << offset;
+      LOG_S(INFO) << "[Server::uFree] free pid  " << pid
+                  << "'s memory at offset " << offset;
       return;
     });
   }
