@@ -1,2 +1,2 @@
-add_library(catch2_test_main OBJECT catch2_test_main.cpp)
-target_link_libraries(catch2_test_main Catch2)
+add_library(th_catch2_test_main OBJECT catch2_test_main.cpp)
+target_link_libraries(th_catch2_test_main Catch2::Catch2)
